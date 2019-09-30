@@ -17,7 +17,7 @@ train_x = (train - train_mean) / train_std
 test_x = (test - train_mean) / train_std
 
 # saving the model for later inference (if training is to be continued another saving method is recommended)
-save_path = './models/AE_big_model_loss54eneg5.pt'
+save_path = './models/AE_big_model_loss48eneg6.pt'
 # torch.save(model_big.state_dict(), save_path)
 model_big = AE_big()
 model_big.load_state_dict(torch.load(save_path))
