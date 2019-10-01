@@ -12,3 +12,4 @@ dependencies:
   - jupyter=1.0.0
   - torchvision
   - pytorch
+  - uproot
