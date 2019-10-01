@@ -13,3 +13,4 @@ dependencies:
   - torchvision
   - pytorch
   - uproot
+  - pandas
