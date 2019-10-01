@@ -6,7 +6,7 @@ dependencies:
   - python=3.7
   - numpy
   - matplotlib
-  - h5py=
+  - h5py
   - pathlib2
   - scipy
   - jupyter
