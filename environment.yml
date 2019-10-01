@@ -12,3 +12,5 @@ dependencies:
   - jupyter=1.0.0
   - torchvision
   - pytorch
+  - uproot
+  - root=6.18.04
