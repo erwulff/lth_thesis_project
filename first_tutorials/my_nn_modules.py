@@ -3,6 +3,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 import numpy as np
 
+
 class AE_big(nn.Module):
     def __init__(self, n_features=4):
         super(AE_big, self).__init__()
@@ -17,10 +18,10 @@ class AE_big(nn.Module):
         self.tanh = nn.Tanh()
 
     def encode(self, x):
-        return self.tanh(self.en4(self.tanh(self.en3(self.tanh(self.en2(self.tanh(self.en1(x))))))))
+        return self.en4(self.tanh(self.en3(self.tanh(self.en2(self.tanh(self.en1(x)))))))
 
     def decode(self, x):
-        return self.de4(self.tanh(self.de3(self.tanh(self.de2(self.tanh(self.de1(x)))))))
+        return self.de4(self.tanh(self.de3(self.tanh(self.de2(self.tanh(self.de1(self.tanh(x))))))))
 
     def forward(self, x):
         z = self.encode(x)
