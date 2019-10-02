@@ -9,6 +9,17 @@ from torch.utils.data import TensorDataset
 
 from my_nn_modules import AE_big, get_data, fit
 
+force_cpu = False
+
+if force_cpu:
+    device = torch.device('cpu')
+else:
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+print('Using device:', device)
+
 # Load data
 train = pd.read_pickle('processed_data/train.pkl')
 test = pd.read_pickle('processed_data/test.pkl')
@@ -42,7 +53,7 @@ lrs = [1e-3, 3e-4, 1e-4, 3e-5, 1e-5]
 for ii, epochs in enumerate(epochs_list):
     print('Setting learning rate to %.2e' % lrs[ii])
     opt = optim.Adam(model_big.parameters(), lr=lrs[ii])
-    fit(epochs, model_big, loss_func, opt, train_dl, valid_dl)
+    fit(epochs, model_big, loss_func, opt, train_dl, valid_dl, device)
 
 # # saving the model for later inference (if training is to be continued another saving method is recommended)
 # save_path = './models/model_big.pt'  # Last save had valid loss = 9.8e-5
