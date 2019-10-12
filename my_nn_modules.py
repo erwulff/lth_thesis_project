@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 import numpy as np
 import datetime
 import time
+import matplotlib.pyplot as plt
+import my_matplotlib_style as ms
 
 
 class AE_3D(nn.Module):
@@ -464,3 +466,18 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
             current_time = time.perf_counter()
             delta_t = current_time - start
             print('Epoch ' + str(epoch) + ':', 'Validation loss = ' + str(val_loss) + ' Time: ' + str(datetime.timedelta(seconds=delta_t)))
+
+
+def plot_activations(learn):
+    plt.figure(figsize=(12, 9))
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[0][i], color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0])
+    plt.title('Layer weight means')
+    plt.legend()
+    plt.figure(figsize=(12, 9))
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[1][i], color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0])
+    plt.title('Layer weight standard deviations')
+    plt.legend()
