@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
+import time
+import datetime
 
 import torch
 import torch.nn as nn
@@ -27,21 +29,23 @@ import matplotlib as mpl
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 
-modules = [AE_3D_50cone, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
-has_dropout = [False, True, False, False, True, False]
-grid_search_folder = 'grid_search_2/'
+# modules = [AE_3D_50cone, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
+# has_dropout = [False, True, False, False, True, False]
+modules = [AE_big, AE_3D_50, AE_3D_100, AE_3D_200]
+has_dropout = [False, False, False, False]
+grid_search_folder = 'grid_search_originals/'
 if not os.path.exists(grid_search_folder):
     os.mkdir(grid_search_folder)
 
 # lrs = np.array([1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # learning rates
 # wds = np.array([0., 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # weight decay
 # ps = np.array([1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # layer dropout rates
-# lrs = np.array([1e-2])
-# wds = np.array([1e-3])
-# ps = np.array([0.])
-lrs = np.array([1e-3, 1e-2, 1e-1, 1.])
-wds = np.array([0., 1e-5, 1e-3, 1e-1])
+lrs = np.array([1e-2, 1e-3, 1e-4])
+wds = np.array([0, 1e-3, 1e-2, 1e-1])
 ps = np.array([0.])
+# lrs = np.array([1e-3, 1e-2, 1e-1])
+# wds = np.array([0., 1e-5, 1e-3, 1e-1])
+# ps = np.array([0.])
 # bss = np.array([1024])  # batch size
 
 save_dict = {}
@@ -61,7 +65,6 @@ train_std = train.std()
 
 train = (train - train_mean) / train_std
 test = (test - train_mean) / train_std
-
 
 train_x = train
 test_x = test
@@ -93,19 +96,43 @@ line_style = ['--', '-']
 colors = ['orange', 'c']
 markers = ['*', 's']
 
-epochs = 12
+epochs = 20
 
 
-def one_train_and_save(epochs, pp):
+def get_unnormalized_reconstructions(model, df, idxs, train_mean, train_std):
+    if idxs is not None:
+        data = torch.tensor(df[idxs[0]:idxs[1]].values)
+    else:
+        data = torch.tensor(df.values)
+    pred = model(data).detach().numpy()
+    pred = np.multiply(pred, train_std.values)
+    pred = np.add(pred, train_mean.values)
+    data = np.multiply(data, train_std.values)
+    data = np.add(data, train_mean.values)
+    return pred, data
+
+
+def train_model(model, epochs, lr, wd):
     plt.close('all')
-    learn = basic_train.Learner(data=db, model=model, loss_func=loss_func, callback_fns=ActivationStats, bn_wd=bn_wd, true_wd=true_wd)
+    learn = basic_train.Learner(data=db, model=model, loss_func=loss_func, wd=wd, callback_fns=ActivationStats, bn_wd=bn_wd, true_wd=true_wd)
+    start = time.perf_counter()
     learn.fit_one_cycle(epochs, max_lr=lr, wd=wd)
+    end = time.perf_counter()
+    delta_t = end - start
+    return learn, delta_t
 
-    # Make and save figures
+
+def get_mod_folder(module_string, lr, pp, wd):
     if pp is None:
         curr_mod_folder = '%s_lr%.0e_pNA_wd%.0e/' % (module_string, lr, wd)
     else:
-        curr_mod_folder = '%s_lr%.0e_p.0e_wd%.0e/' % (module_string, lr, pp, wd)
+        curr_mod_folder = '%s_lr%.0e_p%.0e_wd%.0e/' % (module_string, lr, pp, wd)
+    return curr_mod_folder
+
+
+def save_plots(learn, module_string, lr, wd, pp):
+    # Make and save figures
+    curr_mod_folder = get_mod_folder(module_string, lr, pp, wd)
     curr_save_folder = grid_search_folder + curr_mod_folder
     if not os.path.exists(curr_save_folder):
         os.mkdir(curr_save_folder)
@@ -121,6 +148,7 @@ def one_train_and_save(epochs, pp):
     plt.figure()
     plt.plot(learn.recorder.losses, label='Train')
     plt.plot(val_iter, learn.recorder.val_losses, label='Validation', color='orange')
+    plt.yscale(value='log')
     plt.legend()
     plt.ylabel(loss_name)
     plt.xlabel('Batches processed')
@@ -142,12 +170,7 @@ def one_train_and_save(epochs, pp):
 
     # Histograms
     idxs = (0, 100000)  # Choose events to compare
-    data = torch.tensor(test_x[idxs[0]:idxs[1]].values)
-    pred = model(data).detach().numpy()
-    pred = np.multiply(pred, train_std.values)
-    pred = np.add(pred, train_mean.values)
-    data = np.multiply(data, train_std.values)
-    data = np.add(data, train_mean.values)
+    pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
 
     alph = 0.8
     n_bins = 50
@@ -164,12 +187,7 @@ def one_train_and_save(epochs, pp):
 
     # Plot input on top of output
     idxs = (0, 100)  # Choose events to compare
-    data = torch.tensor(test_x[idxs[0]:idxs[1]].values)
-    pred = model(data).detach().numpy()
-    pred = np.multiply(pred, train_std.values)
-    pred = np.add(pred, train_mean.values)
-    data = np.multiply(data, train_std.values)
-    data = np.add(data, train_mean.values)
+    pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
 
     for kk in np.arange(4):
         plt.figure()
@@ -185,7 +203,7 @@ def one_train_and_save(epochs, pp):
 
     # Plot latent space
     data = torch.tensor(test_x.values)
-    latent = model.encode(data).detach().numpy()
+    latent = learn.model.encode(data).detach().numpy()
     for ii in np.arange(latent.shape[1]):
         plt.figure()
         plt.hist(latent[:, ii], label='$z_%d$' % (ii + 1), color='m')
@@ -198,7 +216,7 @@ def one_train_and_save(epochs, pp):
     # Latent space scatter plots
     idxs = (0, 10000)  # Choose events to compare
     data = torch.tensor(test_x[idxs[0]:idxs[1]].values)
-    latent = model.encode(data).detach().numpy()
+    latent = learn.model.encode(data).detach().numpy()
     mksz = 1
     plt.figure()
     plt.scatter(latent[:, 0], latent[:, 1], s=mksz)
@@ -224,12 +242,7 @@ def one_train_and_save(epochs, pp):
     # Low pT histograms
     # Histograms
     idxs = (0, 100000)  # Choose events to compare
-    data = torch.tensor(test_lowpt[idxs[0]:idxs[1]].values)
-    pred = model(data).detach().numpy()
-    pred = np.multiply(pred, train_std.values)
-    pred = np.add(pred, train_mean.values)
-    data = np.multiply(data, train_std.values)
-    data = np.add(data, train_mean.values)
+    pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
 
     alph = 0.8
     n_bins = 50
@@ -245,34 +258,43 @@ def one_train_and_save(epochs, pp):
         fig_name = 'lowpt_hist_%s' % train_x.columns[kk]
         plt.savefig(curr_save_folder + fig_name)
 
-    return np.min(learn.recorder.val_losses), np.argmin(learn.recorder.val_losses)
+
+def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
+    learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd)
+    time_string = str(datetime.timedelta(seconds=delta_t))
+    save_plots(learn, module_string, pp)
+
+    val_losses = learn.recorder.val_losses
+    train_losses = learn.recorder.losses
+    min_val_loss = np.min(val_losses)
+    min_epoch = np.argmin(val_losses)
+    with open(grid_search_folder + 'min_model_losses.txt', 'a') as f:
+        f.write('%s    Minimum validation loss:    %e    epoch: %d    lr: %.1e    wd: %.1e    p: %s   training time: %s\n' % (module_string, min_val_loss, min_epoch, lr, wd, pp, time_string))
+
+    save_dict[module_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
+        'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
 
 
-def write_min_loss_to_file(module_string, min_val_loss, min_epoch):
-    with open(grid_search_folder + 'min_model_losses.txt', 'w') as f:
-        f.write('%s    Minimum validation loss:    %e    at epoch %d' % (module_string, min_val_loss, min_epoch))
-
-
-for i_mod, module in enumerate(modules):
-    module_string = str(module).split("'")[1].split(".")[1]
-    save_dict[module_string] = {}
-    for wd in wds:
-        for i_lr, lr in enumerate(lrs):
-            if has_dropout[i_mod]:
-                for i_pp, pp in enumerate(ps):
-                    print('Training %s with lr=%.1e, p=%.1e, wd=%.1e ...' % (module_string, lr, pp, wd))
-                    model = module(dropout=pp)
-                    min_val_loss, min_epoch = one_train_and_save(epochs=epochs, pp=pp)
-                    write_min_loss_to_file(module_string, min_val_loss, min_epoch)
-                    save_dict[module_string].update({'min_val_loss': min_val_loss, 'min_val_loss_at_epoch': min_epoch, 'hyper_parameter_names': ['lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp]})
+def run():
+    for i_mod, module in enumerate(modules):
+        module_string = str(module).split("'")[1].split(".")[1]
+        save_dict[module_string] = {}
+        for wd in wds:
+            for i_lr, lr in enumerate(lrs):
+                if has_dropout[i_mod]:
+                    for i_pp, pp in enumerate(ps):
+                        print('Training %s with lr=%.1e, p=%.1e, wd=%.1e ...' % (module_string, lr, pp, wd))
+                        model = module(dropout=pp)
+                        train_and_save(model, epochs, lr, wd, pp, module_string, save_dict)
+                        print('...done')
+                else:
+                    pp = None
+                    model = module()
+                    print('Training %s with lr=%.1e, p=None, wd=%.1e ...' % (module_string, lr, wd))
+                    train_and_save(model, epochs, lr, wd, pp, module_string, save_dict)
                     print('...done')
-            else:
-                model = module()
-                print('Training %s with lr=%.1e, p=None, wd=%.1e ...' % (module_string, lr, wd))
-                min_val_loss, min_epoch = one_train_and_save(epochs=epochs, pp=None)
-                write_min_loss_to_file(module_string, min_val_loss, min_epoch)
-                save_dict[module_string: {'min_val_loss': min_val_loss, 'min_val_loss_at_epoch': min_epoch}]
-                print('...done')
+    with open(grid_search_folder + 'save_dict.pkl', 'wb') as handle:
+        pickle.dump(save_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-with open('save_dict.pkl', 'wb') as handle:
-    pickle.dump(save_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+run()

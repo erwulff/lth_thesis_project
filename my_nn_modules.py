@@ -878,7 +878,7 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
             losses, nums = zip(
                 *[loss_batch(model, loss_func, xb.to(device), yb.to(device)) for xb, yb in valid_dl]
             )
-        val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)  # MSE-Loss
+        val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
         if(epoch % 1 == 0):
             current_time = time.perf_counter()
             delta_t = current_time - start
