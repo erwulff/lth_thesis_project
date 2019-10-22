@@ -8,7 +8,7 @@ import pandas as pd
 
 import torch
 
-from my_nn_modules import AE_3D, AE_big, AE_3D_v2
+from my_nn_modules import AE_big, AE_3D_200
 
 import my_matplotlib_style as ms
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
@@ -25,8 +25,9 @@ test_x = (test - train_mean) / train_std
 
 # saving the model for later inference (if training is to be continued another saving method is recommended)
 save_path = './models/AE_3D_bs256_loss49eneg7.pt'
+save_path = 'models/AE_3D_v2_bs256_loss28eneg7.pt'
 # torch.save(model.state_dict(), save_path)
-model = AE_3D_v2()
+model = AE_3D_200()
 model.load_state_dict(torch.load(save_path))
 model.eval()
 

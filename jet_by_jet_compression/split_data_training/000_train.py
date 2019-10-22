@@ -30,10 +30,10 @@ path_to_data = '../../../data/split_data/'
 
 save_dict = {}
 
-module = AE_3D_100
-module_string = str(module).split("'")[1].split(".")[1]
-#module_string = module_string + '_pp0'
-model = module()
+module = AE_3D_200_bn_drop
+module_string = str(module).split("'")[1].split(".")[1] + '_pp0'
+module_string = module_string
+model = module(dropout=0)
 
 
 epochs = 20

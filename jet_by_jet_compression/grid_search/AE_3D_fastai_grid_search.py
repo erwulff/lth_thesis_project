@@ -22,7 +22,7 @@ from fastai import basic_train, basic_data
 from fastai.callbacks import ActivationStats
 from fastai import train as tr
 
-from my_nn_modules import AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn
+from my_nn_modules import AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
 from my_nn_modules import get_data, RMSELoss, plot_activations
 
 import matplotlib as mpl
@@ -31,9 +31,9 @@ mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 # modules = [AE_3D_50cone, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
 # has_dropout = [False, True, False, False, True, False]
-modules = [AE_big, AE_3D_50, AE_3D_100, AE_3D_200]
-has_dropout = [False, False, False, False]
-grid_search_folder = 'grid_search_originals/'
+modules = [AE_3D_50cone, AE_3D_50_bn_drop, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
+has_dropout = [False, True, True, True, True, False]
+grid_search_folder = 'grid_search_bns/'
 if not os.path.exists(grid_search_folder):
     os.mkdir(grid_search_folder)
 
@@ -99,7 +99,7 @@ markers = ['*', 's']
 epochs = 20
 
 
-def get_unnormalized_reconstructions(model, df, idxs, train_mean, train_std):
+def get_unnormalized_reconstructions(model, df, train_mean, train_std, idxs=None):
     if idxs is not None:
         data = torch.tensor(df[idxs[0]:idxs[1]].values)
     else:
@@ -262,7 +262,7 @@ def save_plots(learn, module_string, lr, wd, pp):
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd)
     time_string = str(datetime.timedelta(seconds=delta_t))
-    save_plots(learn, module_string, pp)
+    save_plots(learn, module_string, lr, wd, pp)
 
     val_losses = learn.recorder.val_losses
     train_losses = learn.recorder.losses
