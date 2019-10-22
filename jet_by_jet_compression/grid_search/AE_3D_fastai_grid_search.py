@@ -258,11 +258,13 @@ def save_plots(learn, module_string, lr, wd, pp):
         fig_name = 'lowpt_hist_%s' % train_x.columns[kk]
         plt.savefig(curr_save_folder + fig_name)
 
+    return curr_mod_folder
+
 
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd)
     time_string = str(datetime.timedelta(seconds=delta_t))
-    save_plots(learn, module_string, lr, wd, pp)
+    curr_mod_folder = save_plots(learn, module_string, lr, wd, pp)
 
     val_losses = learn.recorder.val_losses
     train_losses = learn.recorder.losses
@@ -273,6 +275,7 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
 
     save_dict[module_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
         'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
+    learn.save(curr_mod_folder)
 
 
 def run():
