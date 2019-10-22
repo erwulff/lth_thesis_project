@@ -2,7 +2,6 @@ name: tbd-env
 channels:
  - conda-forge
  - pytorch
- - fastai
 dependencies:
   - python=3.6
   - numpy=1.13
@@ -15,4 +14,3 @@ dependencies:
   - pytorch
   - uproot
   - pandas
-  - fastai=1.0.57=1
