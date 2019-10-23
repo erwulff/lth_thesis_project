@@ -26,14 +26,14 @@ from my_nn_modules import AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3
 from my_nn_modules import get_data, RMSELoss, plot_activations
 
 
-path_to_data = '../../../data/split_data/'
+path_to_data = '../../../data/all_jets_split_data/'
 
 save_dict = {}
 
-module = AE_3D_200_bn_drop
-module_string = str(module).split("'")[1].split(".")[1] + '_pp0'
+module = AE_3D_50
+module_string = str(module).split("'")[1].split(".")[1]
 module_string = module_string
-model = module(dropout=0)
+model = module()
 
 
 epochs = 20
@@ -47,11 +47,12 @@ true_wd = True  # wd will be used for all optimizers
 
 print('Training %s with lr=%.1e, p=%.1e, wd=%.1e ...' % (module_string, lr, pp, wd))
 # Training loop
-for ii in np.arange(10):
+N_datasets = 4
+for ii in np.arange(N_datasets):
     save_dict[ii] = {}
     # Load data
-    train = pd.read_pickle(path_to_data + 'sub_train_%d' % ii)
-    test = pd.read_pickle(path_to_data + 'sub_test_%d' % ii)
+    train = pd.read_pickle(path_to_data + 'sub_train_all_jets_%d' % ii)
+    test = pd.read_pickle(path_to_data + 'sub_test_all_jets_%d' % ii)
 
     # Normalize
     train_mean = train.mean()
