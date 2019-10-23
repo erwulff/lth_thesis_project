@@ -37,8 +37,8 @@ model = module(dropout=0)
 
 
 epochs = 20
-lr = 1e-3
-wd = 0
+lr = 1e-2
+wd = 1e-3
 pp = 0
 loss_func = nn.MSELoss()
 
