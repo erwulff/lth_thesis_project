@@ -30,6 +30,9 @@ epochs = 1
 module_string = 'AE_basic'
 drop = False
 
+with open('slurm_run_all.submit', 'w') as f:
+    f.write('#!/bin/bash')
+
 for nodes in nodes_list:
     # for lr in lrs:
     #     for wd in wds:
@@ -50,4 +53,7 @@ for nodes in nodes_list:
             cp('slurm_base.submit', curr_job_name)
             rl(fname=curr_job_name, findln='python gsearch', newline='python ' + curr_fname)
             rl(fname=curr_job_name, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s_.out' % curr_param_string + curr_fname)
-            rl(fname=curr_job_name, findln='#SBATCH -e ', newline='#SBATCH -o AE_3D_%s_.err' % curr_param_string + curr_fname)
+            rl(fname=curr_job_name, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s_.err' % curr_param_string + curr_fname)
+
+            with open('slurm_run_all.submit', 'a') as f:
+                f.write('sbatch ' + curr_job_name + '\n')
