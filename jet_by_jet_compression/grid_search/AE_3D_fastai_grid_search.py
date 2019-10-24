@@ -22,7 +22,7 @@ from fastai import basic_train, basic_data
 from fastai.callbacks import ActivationStats
 from fastai import train as tr
 
-from my_nn_modules import AE_basic, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
+from my_nn_modules import AE_basic, AE_bn, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
 from my_nn_modules import get_data, RMSELoss, plot_activations
 
 import matplotlib as mpl

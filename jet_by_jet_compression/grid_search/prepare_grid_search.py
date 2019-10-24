@@ -2,6 +2,7 @@ import sys
 import numpy as np
 BIN = '../../'
 sys.path.append(BIN)
+import os
 from shutil import copy as cp
 from utils import replaceline_and_save as rl
 
@@ -26,12 +27,16 @@ nodes_list = [
     [4, 100, 100, 100, 50, 3, 50, 100, 100, 100, 4]
 ]
 
-epochs = 1
+epochs = 25
 module_string = 'AE_basic'
 drop = False
 
 with open('slurm_run_all.submit', 'w') as f:
     f.write('#!/bin/bash\n')
+
+super_folder = module_string + '_grid_search/'
+if not os.path.exists(super_folder):
+    os.mkdir(super_folder)
 
 for nodes in nodes_list:
     # for lr in lrs:
@@ -42,7 +47,7 @@ for nodes in nodes_list:
                 curr_param_string = curr_param_string + '_%d' % ii
             curr_fname = 'gsearch' + curr_param_string + '.py'
             cp(base_script_name, curr_fname)
-            rl(fname=curr_fname, findln='grid_search_folder = ', newline='grid_search_folder = "grid_search_%s/"' % curr_param_string)
+            rl(fname=curr_fname, findln='grid_search_folder = ', newline='grid_search_folder = "%sgrid_search_%s/"' % (super_folder, curr_param_string))
             rl(fname=curr_fname, findln='modules = [', newline='modules = [%s]' % module_string)
             rl(fname=curr_fname, findln='has_dropout = [', newline='has_dropout = [%s]' % str(drop))
             rl(fname=curr_fname, findln='epochs = ', newline='epochs = %d' % epochs)
