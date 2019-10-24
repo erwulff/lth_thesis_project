@@ -1,0 +1,10 @@
+Epoch 0    Validation loss: 3.278365e-02    Training loss: 5.400663e-02
+Epoch 1    Validation loss: 4.102884e-03    Training loss: 8.059878e-03
+Epoch 2    Validation loss: 3.736548e-03    Training loss: 7.215409e-03
+Epoch 3    Validation loss: 1.023978e-02    Training loss: 3.984063e-03
+Epoch 4    Validation loss: 2.321493e-03    Training loss: 2.919782e-03
+Epoch 5    Validation loss: 1.092964e-03    Training loss: 1.935894e-03
+Epoch 6    Validation loss: 1.109964e-03    Training loss: 9.788565e-04
+Epoch 7    Validation loss: 5.826131e-04    Training loss: 5.719722e-04
+Epoch 8    Validation loss: 4.189367e-04    Training loss: 4.740389e-04
+Epoch 9    Validation loss: 3.964817e-04    Training loss: 3.676753e-04
