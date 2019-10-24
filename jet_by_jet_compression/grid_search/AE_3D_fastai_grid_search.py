@@ -22,31 +22,22 @@ from fastai import basic_train, basic_data
 from fastai.callbacks import ActivationStats
 from fastai import train as tr
 
-from my_nn_modules import AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
+from my_nn_modules import AE_basic, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
 from my_nn_modules import get_data, RMSELoss, plot_activations
 
 import matplotlib as mpl
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 
-# modules = [AE_3D_50cone, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
-# has_dropout = [False, True, False, False, True, False]
 modules = [AE_3D_50cone, AE_3D_50_bn_drop, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200_bn_drop, AE_3D_500cone_bn]
 has_dropout = [False, True, True, True, True, False]
 grid_search_folder = 'grid_search_bns/'
 if not os.path.exists(grid_search_folder):
     os.mkdir(grid_search_folder)
 
-# lrs = np.array([1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # learning rates
-# wds = np.array([0., 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # weight decay
-# ps = np.array([1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])  # layer dropout rates
-lrs = np.array([1e-2, 1e-3, 1e-4])
-wds = np.array([0, 1e-3, 1e-2, 1e-1])
+lrs = np.array([1e-2, 1e-3])
+wds = np.array([0, 1e-1, 1e-2, 1e-3])
 ps = np.array([0.])
-# lrs = np.array([1e-3, 1e-2, 1e-1])
-# wds = np.array([0., 1e-5, 1e-3, 1e-1])
-# ps = np.array([0.])
-# bss = np.array([1024])  # batch size
 
 save_dict = {}
 
@@ -262,6 +253,11 @@ def save_plots(learn, module_string, lr, wd, pp):
 
 
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
+    if pp is None:
+        curr_param_string = 'lr%.0e_wd%.0e_ppNA_' % (lr, wd)
+    else:
+        curr_param_string = 'lr%.0e_wd%.0e_pp%.0e_' % (lr, wd, pp)
+
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd)
     time_string = str(datetime.timedelta(seconds=delta_t))
     curr_mod_folder = save_plots(learn, module_string, lr, wd, pp)
@@ -273,9 +269,10 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     with open(grid_search_folder + 'min_model_losses.txt', 'a') as f:
         f.write('%s    Minimum validation loss:    %e    epoch: %d    lr: %.1e    wd: %.1e    p: %s   training time: %s\n' % (module_string, min_val_loss, min_epoch, lr, wd, pp, time_string))
 
-    save_dict[module_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
+    save_dict[module_string].update({curr_param_string: {}})
+    save_dict[module_string][curr_param_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
         'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
-    learn.save(curr_mod_folder)
+    learn.save(curr_mod_folder.split('/')[0])
 
 
 def run():
@@ -287,17 +284,33 @@ def run():
                 if has_dropout[i_mod]:
                     for i_pp, pp in enumerate(ps):
                         print('Training %s with lr=%.1e, p=%.1e, wd=%.1e ...' % (module_string, lr, pp, wd))
-                        model = module(dropout=pp)
-                        train_and_save(model, epochs, lr, wd, pp, module_string, save_dict)
+                        curr_model_p = module(dropout=pp)
+                        train_and_save(curr_model_p, epochs, lr, wd, pp, module_string, save_dict)
                         print('...done')
                 else:
                     pp = None
-                    model = module()
+                    curr_model = module()
                     print('Training %s with lr=%.1e, p=None, wd=%.1e ...' % (module_string, lr, wd))
-                    train_and_save(model, epochs, lr, wd, pp, module_string, save_dict)
+                    train_and_save(curr_model, epochs, lr, wd, pp, module_string, save_dict)
                     print('...done')
     with open(grid_search_folder + 'save_dict.pkl', 'wb') as handle:
         pickle.dump(save_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+one_epochs = 1
+one_lr = [1e-2]
+one_wd = [1e-3]
+one_pp = [0]
+one_module = AE_3D_50
+
+
+def run_one(module, epochs, lr, wd, pp):
+    module_string = str(module).split("'")[1].split(".")[1]
+    save_dict[module_string] = {}
+    print('Training %s with lr=%.1e, p=%.1e, wd=%.1e ...' % (module_string, lr, pp, wd))
+    model = module(dropout=pp)
+    train_and_save(model, epochs, lr, wd, pp, module_string, save_dict)
+    print('...done')
 
 
 run()

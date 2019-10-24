@@ -19,6 +19,33 @@ from fastai import train as tr
 from my_nn_modules import get_data
 
 
+def replaceline_and_save(fname, findln, newline):
+    if findln not in newline:
+        raise ValueError('Detected inconsistency!!!!')
+
+    with open(fname, 'r') as fid:
+        lines = fid.readlines()
+
+    found = False
+    pos = None
+    for ii, line in enumerate(lines):
+        if findln in line:
+            pos = ii
+            found = True
+            break
+
+    if not found:
+        raise ValueError('Not found!!!!')
+
+    if '\n' in newline:
+        lines[pos] = newline
+    else:
+        lines[pos] = newline + '\n'
+
+    with open(fname, 'w') as fid:
+        fid.writelines(lines)
+
+
 def loss_batch(model, loss_func, xb, yb, opt=None):
     loss = loss_func(model(xb), yb)
 
@@ -130,19 +157,24 @@ def db_from_df(train, test, bs=1024):
     return basic_data.DataBunch(train_dl, valid_dl)
 
 
-def plot_residuals(pred, data, range=None, variable_names=['pT', 'eta', 'phi', 'E'], bins=1000):
+def plot_residuals(pred, data, range=None, variable_names=['pT', 'eta', 'phi', 'E'], bins=1000, save=None, title=None):
     alph = 0.8
     residuals = (pred.numpy() - data.numpy()) / data.numpy()
     for kk in np.arange(4):
         plt.figure()
         n_hist_pred, bin_edges, _ = plt.hist(residuals[:, kk], label='Residuals', alpha=alph, bins=bins, range=range)
-        plt.suptitle('Residuals of %s' % variable_names[kk])
+        if title is None:
+            plt.suptitle('Residuals of %s' % variable_names[kk])
+        else:
+            plt.suptitle(title)
         plt.xlabel(r'$(%s_{recon} - %s_{true}) / %s_{true}$' % (variable_names[kk], variable_names[kk], variable_names[kk]))
         plt.ylabel('Number of events')
         ms.sciy()
+        if save is not None:
+            plt.savefig(save + '_%s' % variable_names[kk])
 
 
-def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'], variable_list=[r'$p_T$', r'$\eta$', r'$\phi$', r'$E$'], variable_names=['pT', 'eta', 'phi', 'E'], unit_list=['[GeV]', '[rad]', '[rad]', '[GeV]']):
+def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'], variable_list=[r'$p_T$', r'$\eta$', r'$\phi$', r'$E$'], variable_names=['pT', 'eta', 'phi', 'E'], unit_list=['[GeV]', '[rad]', '[rad]', '[GeV]'], title=None):
     alph = 0.8
     n_bins = bins
     for kk in np.arange(4):
@@ -153,7 +185,10 @@ def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'
         else:
             n_bins_2 = bins
         n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0], label='Output', alpha=alph, bins=n_bins_2)
-        plt.suptitle(variable_names[kk])
+        if title is None:
+            plt.suptitle(variable_names[kk])
+        else:
+            plt.suptitle(title)
         plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
         plt.ylabel('Number of events')
         ms.sciy()
