@@ -31,7 +31,7 @@ module_string = 'AE_basic'
 drop = False
 
 with open('slurm_run_all.submit', 'w') as f:
-    f.write('#!/bin/bash')
+    f.write('#!/bin/bash\n')
 
 for nodes in nodes_list:
     # for lr in lrs:
