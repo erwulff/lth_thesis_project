@@ -57,8 +57,8 @@ for nodes in nodes_list:
             curr_job_name = 'slurm_AE3D_%s.submit' % curr_param_string
             cp('slurm_base.submit', curr_job_name)
             rl(fname=curr_job_name, findln='python gsearch', newline='python ' + curr_fname)
-            rl(fname=curr_job_name, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s_.out' % curr_param_string + curr_fname)
-            rl(fname=curr_job_name, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s_.err' % curr_param_string + curr_fname)
+            rl(fname=curr_job_name, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s_.out' % curr_param_string)
+            rl(fname=curr_job_name, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s_.err' % curr_param_string)
 
             with open('slurm_run_all.submit', 'a') as f:
                 f.write('sbatch ' + curr_job_name + '\n')
