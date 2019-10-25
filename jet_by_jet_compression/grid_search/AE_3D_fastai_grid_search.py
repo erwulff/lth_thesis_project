@@ -35,7 +35,7 @@ grid_search_folder = 'grid_search_bns/'
 if not os.path.exists(grid_search_folder):
     os.mkdir(grid_search_folder)
 
-lrs = np.array([1e-2, 1e-3])
+lrs = np.array([1e-1, 1e-2, 1e-3, 1e-4])
 wds = np.array([0, 1e-1, 1e-2, 1e-3])
 ps = np.array([0.])
 
