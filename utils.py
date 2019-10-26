@@ -19,8 +19,8 @@ from fastai import train as tr
 from my_nn_modules import get_data
 
 
-def replaceline_and_save(fname, findln, newline):
-    if findln not in newline:
+def replaceline_and_save(fname, findln, newline, override=False):
+    if findln not in newline and not override:
         raise ValueError('Detected inconsistency!!!!')
 
     with open(fname, 'r') as fid:
