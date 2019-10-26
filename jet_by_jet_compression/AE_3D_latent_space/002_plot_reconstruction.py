@@ -26,8 +26,9 @@ test_x = (test - train_mean) / train_std
 # saving the model for later inference (if training is to be continued another saving method is recommended)
 save_path = './models/AE_3D_bs256_loss49eneg7.pt'
 save_path = 'models/AE_3D_v2_bs256_loss28eneg7.pt'
+save_path = 'models/AE_big_model_loss48eneg6.pt'
 # torch.save(model.state_dict(), save_path)
-model = AE_3D_200()
+model = AE_big()
 model.load_state_dict(torch.load(save_path))
 model.eval()
 
@@ -49,7 +50,7 @@ markers = ['*', 's']
 
 figures_path = './figures/'
 prefix = 'AE_3D_v2'
-save = True
+save = False
 
 # Histograms
 idxs = (0, int(1e5))  # Choose events to compare
