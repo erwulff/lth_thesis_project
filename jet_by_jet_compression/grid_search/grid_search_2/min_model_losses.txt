@@ -1,0 +1,1 @@
+AE_3D_100cone_bn_drop    Minimum validation loss:    2.217556e-04    at epoch 9

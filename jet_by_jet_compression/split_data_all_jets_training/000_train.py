@@ -36,7 +36,7 @@ module_string = module_string
 model = module()
 
 
-epochs = 20
+epochs = 5
 lr = 1e-2
 wd = 1e-3
 pp = 0

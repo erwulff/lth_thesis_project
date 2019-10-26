@@ -1,0 +1,10 @@
+Epoch 0    Validation MSELoss: 4.693529e-02    Training MSELoss: 9.921616e-03
+Epoch 1    Validation MSELoss: 5.312629e-02    Training MSELoss: 6.209103e-02
+Epoch 2    Validation MSELoss: 1.380128e-01    Training MSELoss: 1.919610e-01
+Epoch 3    Validation MSELoss: 5.422196e-01    Training MSELoss: 4.720905e-01
+Epoch 4    Validation MSELoss: 5.057132e-01    Training MSELoss: 5.062581e-01
+Epoch 5    Validation MSELoss: 5.226340e-01    Training MSELoss: 5.152969e-01
+Epoch 6    Validation MSELoss: 4.929515e-01    Training MSELoss: 4.962166e-01
+Epoch 7    Validation MSELoss: 4.656255e-01    Training MSELoss: 4.706541e-01
+Epoch 8    Validation MSELoss: 4.333492e-01    Training MSELoss: 8.101424e-01
+Epoch 9    Validation MSELoss: 4.143443e-01    Training MSELoss: 4.357789e-01

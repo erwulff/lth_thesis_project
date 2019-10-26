@@ -8,7 +8,7 @@ import pandas as pd
 
 import torch
 
-from my_nn_modules import AE_big, AE_3D, AE_3D_v2, AE_3D_small, AE_3D_small_v2
+from my_nn_modules import AE_big, AE_3D_100, AE_3D_200, AE_3D_small, AE_3D_small_v2
 
 import my_matplotlib_style as ms
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
@@ -26,8 +26,8 @@ test_x = (test - train_mean) / train_std
 
 # Models
 model3 = AE_big()  # 8
-model4 = AE_3D()  # 100
-model5 = AE_3D_v2()  # 200
+model4 = AE_3D_100()  # 100
+model5 = AE_3D_200()  # 200
 model1 = AE_3D_small()  # 4 shallow
 model2 = AE_3D_small_v2()  # 8 shallow
 
@@ -55,9 +55,9 @@ alph = 0.8
 n_bins = 50
 
 figures_path = './comparison_plots/'
-save = True
+save = False
 
-fig1, ax1 = plt.subplots(nrows=len(model_list), ncols=4, figsize=(28, 20), sharex='col')
+fig1, ax1 = plt.subplots(nrows=len(model_list), ncols=4, figsize=(28, 20))#, sharex='col')
 for ii, model in enumerate(model_list):
     save_path = model_folder + model_file_list[ii]
     model.load_state_dict(torch.load(save_path))
@@ -71,7 +71,7 @@ for ii, model in enumerate(model_list):
     data = np.multiply(data, train_std.values)
     data = np.add(data, train_mean.values)
     residuals = (pred - data.detach().numpy()) / data.detach().numpy()
-    range = (-.02, .02)
+    range = (-.1, .1)
     for kk in np.arange(4):
         ax = ax1[ii, kk]
         plt.sca(ax)
@@ -81,7 +81,7 @@ for ii, model in enumerate(model_list):
             plt.legend()
         if ii == 0:
             plt.title(train.columns[kk])
-        if ii == len(model_list) - 1:
+        if True:#ii == len(model_list) - 1:
             plt.xlabel(r'$(%s_{recon} - %s_{true}) / %s_{true}$' % (train.columns[kk], train.columns[kk], train.columns[kk]))
         if kk == 0:
             plt.ylabel(model.describe(), fontsize=20)

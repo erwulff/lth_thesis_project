@@ -8,6 +8,85 @@ import matplotlib.pyplot as plt
 import my_matplotlib_style as ms
 
 
+class AE_basic(nn.Module):
+    def __init__(self, nodes, no_last_bias=False):
+        super(AE_basic, self).__init__()
+        n_layers = len(nodes)
+        ins_n_outs = []
+        en_modulelist = nn.ModuleList()
+        de_modulelist = nn.ModuleList()
+        for ii in range(n_layers // 2):
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            ins_n_outs.append((ins, outs))
+            en_modulelist.append(nn.Linear(ins, outs))
+            en_modulelist.append(nn.Tanh())
+        for ii in range(n_layers // 2):
+            ii += n_layers // 2
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            de_modulelist.append(nn.Linear(ins, outs))
+            de_modulelist.append(nn.Tanh())
+
+        de_modulelist = de_modulelist[:-1]  # Remove Tanh activation from output layer
+        if no_last_bias:
+            de_modulelist = de_modulelist[:-1]
+            de_modulelist.append(nn.Linear(nodes[-2], nodes[-1], bias=False))
+
+        self.encoder = nn.Sequential(*en_modulelist)
+
+        self.decoder = nn.Sequential(*de_modulelist)
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, x):
+        return self.decoder(x)
+
+    def forward(self, x):
+        return self.decode(self.encode(x))
+
+
+class AE_bn(nn.Module):
+    def __init__(self, nodes, no_last_bias=False):
+        super(AE_bn, self).__init__()
+        n_layers = len(nodes)
+        ins_n_outs = []
+        en_modulelist = nn.ModuleList()
+        de_modulelist = nn.ModuleList()
+        for ii in range(n_layers // 2):
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            ins_n_outs.append((ins, outs))
+            en_modulelist.append(nn.Linear(ins, outs))
+            en_modulelist.append(nn.Tanh())
+            en_modulelist.append(nn.BatchNorm1d(outs))
+        for ii in range(n_layers // 2):
+            ii += n_layers // 2
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            de_modulelist.append(nn.Linear(ins, outs))
+            de_modulelist.append(nn.Tanh())
+            de_modulelist.append(nn.BatchNorm1d(outs))
+
+        de_modulelist = de_modulelist[:-2]  # Remove Tanh activation and BatchNorm1d from output layer
+        if no_last_bias:
+            de_modulelist = de_modulelist[:-1]
+            de_modulelist.append(nn.Linear(nodes[-2], nodes[-1], bias=False))
+
+        self.encoder = nn.Sequential(*en_modulelist)
+        self.decoder = nn.Sequential(*de_modulelist)
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, x):
+        return self.decoder(x)
+
+    def forward(self, x):
+        return self.decode(self.encode(x))
+
+
 class AE_3D_100(nn.Module):
     def __init__(self, n_features=4):
         super(AE_3D_100, self).__init__()
@@ -919,24 +998,31 @@ def loss_batch(model, loss_func, xb, yb, opt=None):
 
 
 def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
-    start = time.perf_counter()
+    since = time.time()
+    running_train_loss = 0.
     for epoch in range(epochs):
+        epoch_start = time.perf_counter()
         model.train()
         for xb, yb in train_dl:
             xb = xb.to(device)
             yb = yb.to(device)
-            loss_batch(model, loss_func, xb, yb, opt)
+            loss, lenxb = loss_batch(model, loss_func, xb, yb, opt)
+            running_train_loss += np.multiply(loss, lenxb)
 
         model.eval()
         with torch.no_grad():
             losses, nums = zip(
-                *[loss_batch(model, loss_func, xb.to(device), yb.to(device)) for xb, yb in valid_dl]
+                *[loss_batch(model, loss_func, xb_tmp.to(device), yb_tmp.to(device)) for xb_tmp, yb_tmp in valid_dl]
             )
+        train_loss = running_train_loss / len(train_dl.dataset)
         val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
         if(epoch % 1 == 0):
             current_time = time.perf_counter()
-            delta_t = current_time - start
-            print('Epoch ' + str(epoch) + ':', 'Validation loss = ' + str(val_loss) + ' Time: ' + str(datetime.timedelta(seconds=delta_t)))
+            delta_t = current_time - epoch_start
+            # print('Epoch ' + str(epoch) + ':', 'Validation loss = ' + str(val_loss) + ' Time: ' + str(datetime.timedelta(seconds=delta_t)))
+            print('Epoch: {:d} Train Loss: {:.3e} Val Loss: {:.3e}, Time: {}'.format(epoch, train_loss, val_loss, str(datetime.timedelta(seconds=delta_t))))
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
 
 class RMSELoss(torch.nn.Module):
