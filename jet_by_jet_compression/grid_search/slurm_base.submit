@@ -36,7 +36,7 @@ python --version
 
 ##cd lth_thesis_project/jet_by_jet_compression/grid_search/
 echo "Starting grid search..."
-python gsearch
+python 000_train
 echo "Grid search ended."
 
 ##cp -p -r grid_search_001 $SLURM_SUBMIT_DIR

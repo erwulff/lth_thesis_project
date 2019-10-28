@@ -6,11 +6,12 @@ import os
 from shutil import copy as cp
 from utils import replaceline_and_save as rl
 
-lrs = np.array([1e-2, 1e-3, 1e-4])
-wds = np.array([0, 1e-3, 1e-2, 1e-1])
-ps = np.array([0.])
+lrs = np.array([1e-2, 1e-3, 1e-4, 1e-5])
+wds = np.array([0, 1e-5, 1e-4, 1e-3, 1e-2])
+pps = np.array([0.])
+bss = np.array([1024])
 
-base_script_name = 'AE_3D_fastai_grid_search.py'
+base_script_name = '000_train.py'
 
 nodes_list = [
     [4, 50, 3, 50, 4],
@@ -38,7 +39,7 @@ nodes_list = [
     [4, 200, 200, 200, 200, 200, 100, 3, 100, 200, 200, 200, 200, 200, 4]
 ]
 
-epochs = 100
+epochs = 200
 module_string = 'AE_basic'
 drop = False
 
@@ -51,30 +52,37 @@ if not os.path.exists(super_folder):
 with open(super_folder + 'slurm_run_all.submit', 'w') as f:
     f.write('#!/bin/bash\n')
 
-for nodes in nodes_list:
-    # for lr in lrs:
-    #     for wd in wds:
-            #curr_param_string = 'lr%.0e_wd%.0e_pp%.0e_' % (lr, wd, pp)
-            curr_param_string = ''
-            for ii in nodes:
-                curr_param_string = curr_param_string + '_%d' % ii
-            curr_fname = 'gsearch' + curr_param_string + '.py'
-            curr_fpath = super_folder + curr_fname
-            cp(base_script_name, curr_fpath)
-            rl(fname=curr_fpath, findln='grid_search_folder = ', newline='grid_search_folder = "grid_search_%s/"' % (curr_param_string))
-            rl(fname=curr_fpath, findln='modules = [', newline='modules = [%s]' % module_string)
-            rl(fname=curr_fpath, findln='has_dropout = [', newline='has_dropout = [%s]' % str(drop))
-            rl(fname=curr_fpath, findln='epochs = ', newline='epochs = %d' % epochs)
-            rl(fname=curr_fpath, findln='curr_model_p = module(', newline='                        curr_model_p = module(%s)' % nodes)
-            rl(fname=curr_fpath, findln='curr_model = module(', newline='                    curr_model = module(%s)' % nodes)
-            rl(fname=curr_fpath, findln='BIN = ', newline="BIN = '../../../'")
+for bs in bss:
+    for nodes in nodes_list:
+        curr_nodes_string = ''
+        for ii in nodes:
+            curr_nodes_string = curr_nodes_string + '_%d' % ii
+            curr_nodes_path = super_folder + 'AE' + curr_nodes_string + '/'
+        if not os.path.exists(curr_nodes_path):
+            os.mkdir(curr_nodes_path)
+        for lr in lrs:
+            for wd in wds:
+                for pp in pps:
+                    curr_param_string = 'lr%.0e_wd%.0e_pp%.0e_' % (lr, wd, pp)
+                    curr_fname = '000_train' + curr_param_string + '.py'
+                    curr_fpath = curr_nodes_path + curr_fname
+                    cp(base_script_name, curr_fpath)
+                    rl(fname=curr_fpath, findln='bs = ', newline='bs = %d' % (bs))
+                    rl(fname=curr_fpath, findln='one_module =', newline='one_module = %s' % module_string)
+                    # rl(fname=curr_fpath, findln='has_dropout = [', newline='has_dropout = [%s]' % str(drop))
+                    rl(fname=curr_fpath, findln='one_epochs = ', newline='one_epochs = %d' % epochs)
+                    rl(fname=curr_fpath, findln='curr_model_p = module(', newline='        curr_model_p = module(%s)' % nodes)
+                    rl(fname=curr_fpath, findln='curr_model = module(', newline='        curr_model = module(%s)' % nodes)
+                    rl(fname=curr_fpath, findln='BIN = ', newline="BIN = '../../../../'")
 
-            curr_job_name = 'slurm_AE3D_%s.submit' % curr_param_string
-            curr_job_path = super_folder + curr_job_name
-            cp('slurm_base.submit', curr_job_path)
-            rl(fname=curr_job_path, findln='python gsearch', newline='python ' + curr_fname, override=True)
-            rl(fname=curr_job_path, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s.out' % (curr_param_string))
-            rl(fname=curr_job_path, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s.err' % (curr_param_string))
+                    curr_job_name = 'slurm_AE3D_%s_%s.submit' % (curr_nodes_string, curr_param_string)
+                    curr_job_path = curr_nodes_path + curr_job_name
+                    cp('slurm_base.submit', curr_job_path)
+                    rl(fname=curr_job_path, findln='python 000_train', newline='python ' + curr_fname, override=True)
+                    rl(fname=curr_job_path, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s.out' % (curr_param_string))
+                    rl(fname=curr_job_path, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s.err' % (curr_param_string))
 
-            with open(super_folder + 'slurm_run_all.submit', 'a') as f:
-                f.write('sbatch ' + curr_job_name + '\n')
+                    with open(super_folder + 'slurm_run_all.submit', 'a') as f:
+                        f.write('cd %s' % 'AE' + curr_nodes_string + '/\n')
+                        f.write('sbatch ' + curr_job_name + '\n')
+                        f.write('cd ..\n')
