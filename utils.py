@@ -2,6 +2,7 @@ import os.path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 import torch
 import torch.nn as nn
@@ -19,31 +20,47 @@ from fastai import train as tr
 from my_nn_modules import get_data
 
 
-def replaceline_and_save(fname, findln, newline, override=False):
-    if findln not in newline and not override:
-        raise ValueError('Detected inconsistency!!!!')
+def time_encode_decode(model, dataframe, verbose=False):
+    """Time the model's endoce and decode functions.
 
-    with open(fname, 'r') as fid:
-        lines = fid.readlines()
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to evaluate.
+    dataframe : type
+        A pandas DataFrame containing data to encode and decode.
 
-    found = False
-    pos = None
-    for ii, line in enumerate(lines):
-        if findln in line:
-            pos = ii
-            found = True
-            break
+    Returns
+    -------
+    tuple
+        Tuple containing (encode_time_per_jet, decode_time_per_jet).
 
-    if not found:
-        raise ValueError('Not found!!!!')
+    """
+    data = torch.tensor(dataframe.values)
+    start_encode = time.time()
+    latent = model.encode(data)
+    end_encode = time.time()
+    encode_time = end_encode - start_encode
 
-    if '\n' in newline:
-        lines[pos] = newline
-    else:
-        lines[pos] = newline + '\n'
+    start_decode = time.time()
+    _ = model.decode(latent)
+    end_decode = time.time()
+    decode_time = end_decode - start_decode
 
-    with open(fname, 'w') as fid:
-        fid.writelines(lines)
+    n_jets = len(dataframe)
+    decode_time_per_jet = decode_time / n_jets
+    encode_time_per_jet = encode_time / n_jets
+
+    if verbose:
+        print('Encode time/jet: %e seconds' % encode_time_per_jet)
+        print('Decode time/jet: %e seconds' % decode_time_per_jet)
+
+    return encode_time_per_jet, decode_time_per_jet
+
+
+def rms(arr):
+    arr = arr.flatten()
+    return np.sqrt(np.sum(arr**2) / len(arr))
 
 
 def loss_batch(model, loss_func, xb, yb, opt=None):
@@ -193,3 +210,30 @@ def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'
         plt.ylabel('Number of events')
         ms.sciy()
         plt.legend()
+
+
+def replaceline_and_save(fname, findln, newline, override=False):
+    if findln not in newline and not override:
+        raise ValueError('Detected inconsistency!!!!')
+
+    with open(fname, 'r') as fid:
+        lines = fid.readlines()
+
+    found = False
+    pos = None
+    for ii, line in enumerate(lines):
+        if findln in line:
+            pos = ii
+            found = True
+            break
+
+    if not found:
+        raise ValueError('Not found!!!!')
+
+    if '\n' in newline:
+        lines[pos] = newline
+    else:
+        lines[pos] = newline + '\n'
+
+    with open(fname, 'w') as fid:
+        fid.writelines(lines)
