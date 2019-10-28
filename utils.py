@@ -74,10 +74,8 @@ def loss_batch(model, loss_func, xb, yb, opt=None):
     return loss.item(), len(xb)
 
 
-def validate(learn, dl):
+def validate(model, dl, loss_func):
     for batch in dl:
-        model = learn.model
-        loss_func = learn.loss_func
         losses, nums = zip(*[loss_batch(model, loss_func, xb, yb) for xb, yb in dl])
         val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
         print(val_loss)

@@ -6,6 +6,7 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 import my_matplotlib_style as ms
+import pandas as pd
 
 
 class AE_basic(nn.Module):
@@ -999,8 +1000,10 @@ def loss_batch(model, loss_func, xb, yb, opt=None):
 
 def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
     since = time.time()
-    running_train_loss = 0.
+    epochs_train_loss = []
+    epochs_val_loss = []
     for epoch in range(epochs):
+        running_train_loss = 0.
         epoch_start = time.perf_counter()
         model.train()
         for xb, yb in train_dl:
@@ -1015,7 +1018,9 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
                 *[loss_batch(model, loss_func, xb_tmp.to(device), yb_tmp.to(device)) for xb_tmp, yb_tmp in valid_dl]
             )
         train_loss = running_train_loss / len(train_dl.dataset)
+        epochs_train_loss.append(train_loss)
         val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums)
+        epochs_val_loss.append(val_loss)
         if(epoch % 1 == 0):
             current_time = time.perf_counter()
             delta_t = current_time - epoch_start
@@ -1023,6 +1028,7 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
             print('Epoch: {:d} Train Loss: {:.3e} Val Loss: {:.3e}, Time: {}'.format(epoch, train_loss, val_loss, str(datetime.timedelta(seconds=delta_t))))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    return pd.DataFrame({'Epoch': np.arange(epochs), 'val_loss': np.array(epochs_val_loss), 'train_loss': np.array(epochs_train_loss), 'epoch_time': delta_t})
 
 
 class RMSELoss(torch.nn.Module):
