@@ -1028,7 +1028,7 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
             print('Epoch: {:d} Train Loss: {:.3e} Val Loss: {:.3e}, Time: {}'.format(epoch, train_loss, val_loss, str(datetime.timedelta(seconds=delta_t))))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    return pd.DataFrame({'Epoch': np.arange(epochs), 'val_loss': np.array(epochs_val_loss), 'train_loss': np.array(epochs_train_loss), 'epoch_time': delta_t})
+    return pd.DataFrame({'Epoch': np.arange(epochs), 'train_loss': np.array(epochs_train_loss), 'val_loss': np.array(epochs_val_loss), 'epoch_time': delta_t})
 
 
 class RMSELoss(torch.nn.Module):
