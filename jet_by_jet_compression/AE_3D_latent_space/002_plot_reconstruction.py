@@ -47,7 +47,7 @@ markers = ['*', 's']
 
 figures_path = './figures/'
 prefix = 'AE_3D_200'
-save = True
+save = False
 
 # Histograms
 idxs = (0, int(1e5))  # Choose events to compare
@@ -80,6 +80,7 @@ for kk in np.arange(4):
 # Histogram of residuals
 residuals = (pred - data.detach().numpy()) / data.detach().numpy()
 range = (-0.02, 0.02)
+# range = None
 label_kwargs = {'fontsize': 14}
 title_kwargs = {"fontsize": 11}
 mpl.rcParams['lines.linewidth'] = 1
@@ -96,11 +97,12 @@ mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 for kk in np.arange(4):
     plt.figure()
     n_hist_pred, bin_edges, _ = plt.hist(
-        residuals[:, kk], label='Residuals', linestyle=line_style[0], alpha=alph, bins=1000, range=range)
+        residuals[:, kk], label='Residuals', linestyle=line_style[0], alpha=alph, bins=200, range=range)
     plt.suptitle('Residuals of %s' % train.columns[kk])
     plt.xlabel(residual_strings[kk])  # (train.columns[kk], train.columns[kk], train.columns[kk]))
     plt.ylabel('Number of jets')
-    ms.sciy()
+    #ms.sciy()
+    plt.yscale('log')
     rms = utils.rms(residuals[:, kk])
     ax = plt.gca()
     plt.text(.2, .5, 'RMS = %f' % rms, bbox={'facecolor': 'white', 'alpha': 0.7, 'pad': 10},
