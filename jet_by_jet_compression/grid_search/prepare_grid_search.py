@@ -67,10 +67,15 @@ for bs in bss:
                     curr_fname = '000_train' + curr_param_string + '.py'
                     curr_fpath = curr_nodes_path + curr_fname
                     cp(base_script_name, curr_fpath)
+
                     rl(fname=curr_fpath, findln='bs = ', newline='bs = %d' % (bs))
                     rl(fname=curr_fpath, findln='one_module =', newline='one_module = %s' % module_string)
                     # rl(fname=curr_fpath, findln='has_dropout = [', newline='has_dropout = [%s]' % str(drop))
                     rl(fname=curr_fpath, findln='one_epochs = ', newline='one_epochs = %d' % epochs)
+                    rl(fname=curr_fpath, findln='one_lr = ', newline='one_lr = %e' % lr)
+                    rl(fname=curr_fpath, findln='one_wd = ', newline='one_wd = %e' % wd)
+                    rl(fname=curr_fpath, findln='one_pp = ', newline='one_pp = None')
+
                     rl(fname=curr_fpath, findln='curr_model_p = module(', newline='        curr_model_p = module(%s)' % nodes)
                     rl(fname=curr_fpath, findln='curr_model = module(', newline='        curr_model = module(%s)' % nodes)
                     rl(fname=curr_fpath, findln='BIN = ', newline="BIN = '../../../../'")
