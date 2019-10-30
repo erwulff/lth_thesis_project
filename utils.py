@@ -192,6 +192,23 @@ def log_normalize(train, test=None):
 
 
 def get_log_normalized_dls(train, test, bs=1024):
+    """Get lognormalized DataLoaders from train and test DataFrames.
+
+    Parameters
+    ----------
+    train : DataFrame
+        Training data.
+    test : DataFrame
+        Test data.
+    bs : int
+        Batch size.
+
+    Returns
+    -------
+    (DataLoader, DataLoader)
+        Train and test DataLoaders.
+
+    """
     train, test = log_normalize(train, test)
     train_x = train
     test_x = test
