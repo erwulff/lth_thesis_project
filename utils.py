@@ -278,6 +278,27 @@ def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'
         plt.legend()
 
 
+def plot_activations(learn, figsize=(12, 9), lines=['-', ':'], save=None, linewd=1, fontsz=14):
+    plt.figure(figsize=figsize)
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[0][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
+    plt.title('Weight means')
+    plt.legend(fontsize=fontsz)
+    plt.xlabel('Mini-batch')
+    if save is not None:
+        plt.savefig(save + '_means')
+    plt.figure(figsize=(12, 9))
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[1][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
+    plt.title('Weight standard deviations')
+    plt.xlabel('Mini-batch')
+    plt.legend(fontsize=fontsz)
+    if save is not None:
+        plt.savefig(save + '_stds')
+
+
 # Miscellaneous
 def replaceline_and_save(fname, findln, newline, override=False):
     if findln not in newline and not override:
