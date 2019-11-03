@@ -250,10 +250,10 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     save_dict[module_string].update({curr_param_string: {}})
     save_dict[module_string][curr_param_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
         'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
-    with open('save_dict%s.pkl' % curr_param_string, 'wb') as f:
+    curr_save_folder = get_mod_folder(module_string, lr, pp, wd)
+    with open(curr_save_folder + 'save_dict%s.pkl' % curr_param_string, 'wb') as f:
         pickle.dump(save_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
     learn.save(curr_mod_folder.split('/')[0])
-    curr_save_folder = get_mod_folder(module_string, lr, pp, wd)
     with open(curr_save_folder + 'summary.txt', 'w') as f:
         f.write('%s Minimum validation loss: %e epoch: %d lr: %.1e wd: %.1e p: %s Training time: %s\n' % (module_string, min_val_loss, min_epoch, lr, wd, pp, time_string))
 
