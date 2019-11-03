@@ -23,7 +23,7 @@ from fastai import basic_train, basic_data
 from fastai.callbacks import ActivationStats
 from fastai import train as tr
 
-from my_nn_modules import AE_basic, AE_bn, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
+from my_nn_modules import AE_basic, AE_bn, AE_LeakyReLU, AE_bn_LeakyReLU, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
 from my_nn_modules import get_data, RMSELoss, plot_activations
 
 import matplotlib as mpl
@@ -37,34 +37,19 @@ pp = 0
 save_dict = {}
 
 # Load data
-train = pd.read_pickle(BIN + 'processed_data/train.pkl')
-test = pd.read_pickle(BIN + 'processed_data/test.pkl')
-#train_lowpt = train[train['pT'] < 100]
-test_lowpt = test[test['pT'] < 100]
-# # Make dataset smaller
-# train = train[0:int(1e5)]
-# test = test[0:int(1e4)]
+train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train.pkl')
+test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
 
-# Normalize
-train_mean = train.mean()
-train_std = train.std()
+train = train.sample(frac=0.1, random_state=42).reset_index(drop=True)  # Pick out a fraction of the data
+test = test.sample(frac=0.1, random_state=42).reset_index(drop=True)
 
-train = (train - train_mean) / train_std
-test = (test - train_mean) / train_std
-
-train_x = train
-test_x = test
-train_y = train_x  # y = x since we are training an AE
-test_y = test_x
-
-train_ds = TensorDataset(torch.tensor(train_x.values), torch.tensor(train_y.values))
-valid_ds = TensorDataset(torch.tensor(test_x.values), torch.tensor(test_y.values))
-
-# Low pT data
-test_lowpt = (test_lowpt - train_mean) / train_std  # Normalized by full dataset mean and std
-
-bs = 1024
+bs = 128
+# Create TensorDatasets
+train_ds = TensorDataset(torch.tensor(train.values, dtype=torch.float), torch.tensor(train.values, dtype=torch.float))
+valid_ds = TensorDataset(torch.tensor(test.values, dtype=torch.float), torch.tensor(test.values, dtype=torch.float))
+# Create DataLoaders
 train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
+# Return DataBunch
 db = basic_data.DataBunch(train_dl, valid_dl)
 
 # loss_func = RMSELoss()
