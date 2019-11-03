@@ -29,6 +29,7 @@ from my_nn_modules import get_data, RMSELoss, plot_activations
 import matplotlib as mpl
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
+print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
 
 lr = 1e-3
 wds = 1e-5
