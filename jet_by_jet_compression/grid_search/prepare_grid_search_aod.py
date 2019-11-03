@@ -83,7 +83,7 @@ for bs in bss:
 
                     curr_job_name = 'slurm_AE3D_%s_%s.submit' % (curr_nodes_string, curr_param_string)
                     curr_job_path = curr_nodes_path + curr_job_name
-                    cp('slurm_base.submit', curr_job_path)
+                    cp('slurm_base_aod.submit', curr_job_path)
                     rl(fname=curr_job_path, findln='python 001_train', newline='python ' + curr_fname, override=True)
                     rl(fname=curr_job_path, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s.out' % (curr_param_string))
                     rl(fname=curr_job_path, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s.err' % (curr_param_string))
