@@ -6,10 +6,10 @@ import os
 from shutil import copy as cp
 from utils import replaceline_and_save as rl
 
-lrs = np.array([1e-2, 1e-3])
+lrs = np.array([1e-2])
 wds = np.array([1e-6])
 pps = np.array([0.])
-bss = np.array([1024])
+bss = np.array([128, 512, 1024])
 
 base_script_name = '001_train_aod.py'
 
@@ -24,7 +24,7 @@ nodes_list = [
     # [4, 8, 6, 4, 3, 4, 6, 8, 4],
     # [27, 50, 50, 50, 18, 50, 50, 50, 27],
     # [4, 100, 100, 50, 3, 50, 100, 100, 4],
-    [27, 100, 100, 100, 18, 100, 100, 100, 27],
+    # [27, 100, 100, 100, 18, 100, 100, 100, 27],
     # [4, 200, 100, 50, 3, 50, 100, 200, 4],
     [27, 200, 200, 200, 18, 200, 200, 200, 27],
     # [27, 400, 200, 100, 18, 100, 200, 400, 27],
@@ -50,7 +50,7 @@ if not os.path.exists(super_folder):
     os.mkdir(super_folder)
 
 # Create bash script to submit all
-with open(super_folder + 'slurm_run_all.submit', 'w') as f:
+with open(super_folder + 'slurm_run_all_aod.submit', 'w') as f:
     f.write('#!/bin/bash\n')
 
 for bs in bss:
@@ -65,7 +65,7 @@ for bs in bss:
             for wd in wds:
                 for pp in pps:
                     curr_param_string = 'lr%.0e_wd%.0e_pp%.0e_' % (lr, wd, pp)
-                    curr_fname = '000_train' + curr_param_string + '.py'
+                    curr_fname = '001_train_aod' + curr_param_string + '.py'
                     curr_fpath = curr_nodes_path + curr_fname
                     cp(base_script_name, curr_fpath)
 
@@ -84,11 +84,11 @@ for bs in bss:
                     curr_job_name = 'slurm_AE3D_%s_%s.submit' % (curr_nodes_string, curr_param_string)
                     curr_job_path = curr_nodes_path + curr_job_name
                     cp('slurm_base.submit', curr_job_path)
-                    rl(fname=curr_job_path, findln='python 000_train', newline='python ' + curr_fname, override=True)
+                    rl(fname=curr_job_path, findln='python 001_train', newline='python ' + curr_fname, override=True)
                     rl(fname=curr_job_path, findln='#SBATCH -o ', newline='#SBATCH -o AE_3D_%s.out' % (curr_param_string))
                     rl(fname=curr_job_path, findln='#SBATCH -e ', newline='#SBATCH -e AE_3D_%s.err' % (curr_param_string))
 
-                    with open(super_folder + 'slurm_run_all.submit', 'a') as f:
+                    with open(super_folder + 'slurm_run_all_aod.submit', 'a') as f:
                         f.write('cd %s' % 'AE' + curr_nodes_string + '/\n')
                         f.write('sbatch ' + curr_job_name + '\n')
                         f.write('cd ..\n')
