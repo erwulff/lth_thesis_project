@@ -63,7 +63,7 @@ for bs in bss:
         for lr in lrs:
             for wd in wds:
                 for pp in pps:
-                    curr_param_string = 'lr%.0e_wd%.0e_pp%.0e_' % (lr, wd, pp)
+                    curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e_' % (bs, lr, wd, pp)
                     curr_fname = '000_train' + curr_param_string + '.py'
                     curr_fpath = curr_nodes_path + curr_fname
                     cp(base_script_name, curr_fpath)
