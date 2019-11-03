@@ -39,11 +39,10 @@ pp = 0
 save_dict = {}
 
 # Load data
-train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train.pkl')
-test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
-
-train = train.sample(frac=0.1, random_state=42).reset_index(drop=True)  # Pick out a fraction of the data
-test = test.sample(frac=0.1, random_state=42).reset_index(drop=True)
+# train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train.pkl')
+# test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
+train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
+test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
 
 bs = 128
 # Create TensorDatasets
