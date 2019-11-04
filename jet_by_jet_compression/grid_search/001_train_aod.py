@@ -142,19 +142,21 @@ def save_plots(learn, module_string, lr, wd, pp):
     # Histograms
     # idxs = (0, 100000)  # Choose events to compare
     # pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
-    #
-    # alph = 0.8
-    # n_bins = 50
-    # for kk in np.arange(4):
-    #     plt.figure()
-    #     n_hist_data, bin_edges, _ = plt.hist(data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins)
-    #     n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0], label='Output', alpha=alph, bins=bin_edges)
-    #     plt.suptitle(train_x.columns[kk])
-    #     plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
-    #     plt.ylabel('Number of events')
-    #     ms.sciy()
-    #     fig_name = 'hist_%s' % train_x.columns[kk]
-    #     plt.savefig(curr_save_folder + fig_name)
+    data = test[0:100000]
+    pred = learn.model(torch.tensor(data.values, dtype=torch.float))
+
+    alph = 0.8
+    n_bins = 80
+    for kk in np.arange(27):
+        plt.figure()
+        n_hist_data, bin_edges, _ = plt.hist(data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins)
+        n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0], label='Output', alpha=alph, bins=bin_edges)
+        plt.suptitle(train.columns[kk])
+        plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
+        plt.ylabel('Number of events')
+        plt.yscale('log')
+        fig_name = 'hist_%s' % train.columns[kk]
+        plt.savefig(curr_save_folder + fig_name)
 
     # # Plot input on top of output
     # idxs = (0, 100)  # Choose events to compare
