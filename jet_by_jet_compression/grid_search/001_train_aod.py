@@ -131,8 +131,8 @@ def save_plots(learn, module_string, lr, wd, pp):
     plt.ylabel(loss_name)
     plt.yscale('log')
     plt.xlabel('Epoch')
-    for i_val, val in enumerate(learn.recorder.val_losses):
-        plt.text(i_val, val, str(val), horizontalalignment='center')
+    # for i_val, val in enumerate(learn.recorder.val_losses):
+    #     plt.text(i_val, val, str(val), horizontalalignment='center')
     fig_name = 'losses_val'
     plt.savefig(curr_save_folder + fig_name + '.png')
     with open(curr_save_folder + 'losses.txt', 'w') as f:
@@ -142,8 +142,8 @@ def save_plots(learn, module_string, lr, wd, pp):
     # Histograms
     # idxs = (0, 100000)  # Choose events to compare
     # pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
-    data = test[0:100000]
-    pred = learn.model(torch.tensor(data.values, dtype=torch.float))
+    data = test[0:100000].values
+    pred = learn.model(torch.tensor(data, dtype=torch.float))
 
     alph = 0.8
     n_bins = 80
@@ -152,7 +152,8 @@ def save_plots(learn, module_string, lr, wd, pp):
         n_hist_data, bin_edges, _ = plt.hist(data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins)
         n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0], label='Output', alpha=alph, bins=bin_edges)
         plt.suptitle(train.columns[kk])
-        plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
+        # plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
+        plt.xlabel(train.columns[kk])
         plt.ylabel('Number of events')
         plt.yscale('log')
         fig_name = 'hist_%s' % train.columns[kk]

@@ -115,8 +115,8 @@ def save_plots(learn, module_string, lr, wd, pp):
     plt.ylabel(loss_name)
     plt.yscale('log')
     plt.xlabel('Epoch')
-    for i_val, val in enumerate(learn.recorder.val_losses):
-        plt.text(i_val, val, str(val), horizontalalignment='center')
+    # for i_val, val in enumerate(learn.recorder.val_losses):
+    #     plt.text(i_val, val, str(val), horizontalalignment='center')
     fig_name = 'losses_val'
     plt.savefig(curr_save_folder + fig_name + '.png')
     with open(curr_save_folder + 'losses.txt', 'w') as f:
