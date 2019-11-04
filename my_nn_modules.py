@@ -48,6 +48,45 @@ class AE_basic(nn.Module):
         return self.decode(self.encode(x))
 
 
+class AE_LeakyReLU(nn.Module):
+    def __init__(self, nodes, no_last_bias=False):
+        super(AE_LeakyReLU, self).__init__()
+        n_layers = len(nodes)
+        ins_n_outs = []
+        en_modulelist = nn.ModuleList()
+        de_modulelist = nn.ModuleList()
+        for ii in range(n_layers // 2):
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            ins_n_outs.append((ins, outs))
+            en_modulelist.append(nn.Linear(ins, outs))
+            en_modulelist.append(nn.LeakyReLU())
+        for ii in range(n_layers // 2):
+            ii += n_layers // 2
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            de_modulelist.append(nn.Linear(ins, outs))
+            de_modulelist.append(nn.LeakyReLU())
+
+        de_modulelist = de_modulelist[:-1]  # Remove LeakyReLU activation from output layer
+        if no_last_bias:
+            de_modulelist = de_modulelist[:-1]
+            de_modulelist.append(nn.Linear(nodes[-2], nodes[-1], bias=False))
+
+        self.encoder = nn.Sequential(*en_modulelist)
+
+        self.decoder = nn.Sequential(*de_modulelist)
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, x):
+        return self.decoder(x)
+
+    def forward(self, x):
+        return self.decode(self.encode(x))
+
+
 class AE_bn(nn.Module):
     def __init__(self, nodes, no_last_bias=False):
         super(AE_bn, self).__init__()
@@ -60,17 +99,59 @@ class AE_bn(nn.Module):
             outs = nodes[ii + 1]
             ins_n_outs.append((ins, outs))
             en_modulelist.append(nn.Linear(ins, outs))
+
+            en_modulelist.append(nn.BatchNorm1d(outs))
             en_modulelist.append(nn.Tanh())
+        for ii in range(n_layers // 2):
+            ii += n_layers // 2
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            de_modulelist.append(nn.Linear(ins, outs))
+
+            de_modulelist.append(nn.BatchNorm1d(outs))
+            de_modulelist.append(nn.Tanh())
+
+        de_modulelist = de_modulelist[:-2]  # Remove Tanh activation and BatchNorm1d from output layer
+        if no_last_bias:
+            de_modulelist = de_modulelist[:-1]
+            de_modulelist.append(nn.Linear(nodes[-2], nodes[-1], bias=False))
+
+        self.encoder = nn.Sequential(*en_modulelist)
+        self.decoder = nn.Sequential(*de_modulelist)
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, x):
+        return self.decoder(x)
+
+    def forward(self, x):
+        return self.decode(self.encode(x))
+
+
+class AE_bn_LeakyReLU(nn.Module):
+    def __init__(self, nodes, no_last_bias=False):
+        super(AE_bn_LeakyReLU, self).__init__()
+        n_layers = len(nodes)
+        ins_n_outs = []
+        en_modulelist = nn.ModuleList()
+        de_modulelist = nn.ModuleList()
+        for ii in range(n_layers // 2):
+            ins = nodes[ii]
+            outs = nodes[ii + 1]
+            ins_n_outs.append((ins, outs))
+            en_modulelist.append(nn.Linear(ins, outs))
+            en_modulelist.append(nn.LeakyReLU())
             en_modulelist.append(nn.BatchNorm1d(outs))
         for ii in range(n_layers // 2):
             ii += n_layers // 2
             ins = nodes[ii]
             outs = nodes[ii + 1]
             de_modulelist.append(nn.Linear(ins, outs))
-            de_modulelist.append(nn.Tanh())
+            de_modulelist.append(nn.LeakyReLU())
             de_modulelist.append(nn.BatchNorm1d(outs))
 
-        de_modulelist = de_modulelist[:-2]  # Remove Tanh activation and BatchNorm1d from output layer
+        de_modulelist = de_modulelist[:-2]  # Remove LeakyReLU activation and BatchNorm1d from output layer
         if no_last_bias:
             de_modulelist = de_modulelist[:-1]
             de_modulelist.append(nn.Linear(nodes[-2], nodes[-1], bias=False))
@@ -1028,7 +1109,7 @@ def fit(epochs, model, loss_func, opt, train_dl, valid_dl, device):
             print('Epoch: {:d} Train Loss: {:.3e} Val Loss: {:.3e}, Time: {}'.format(epoch, train_loss, val_loss, str(datetime.timedelta(seconds=delta_t))))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    return pd.DataFrame({'Epoch': np.arange(epochs), 'val_loss': np.array(epochs_val_loss), 'train_loss': np.array(epochs_train_loss), 'epoch_time': delta_t})
+    return pd.DataFrame({'Epoch': np.arange(epochs), 'train_loss': np.array(epochs_train_loss), 'val_loss': np.array(epochs_val_loss), 'epoch_time': delta_t})
 
 
 class RMSELoss(torch.nn.Module):
@@ -1039,24 +1120,3 @@ class RMSELoss(torch.nn.Module):
         criterion = nn.MSELoss()
         loss = torch.sqrt(criterion(x, y))
         return loss
-
-
-def plot_activations(learn, figsize=(12, 9), lines=['-', ':'], save=None, linewd=1, fontsz=14):
-    plt.figure(figsize=figsize)
-    for i in range(learn.activation_stats.stats.shape[1]):
-        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
-        plt.plot(learn.activation_stats.stats[0][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
-    plt.title('Weight means')
-    plt.legend(fontsize=fontsz)
-    plt.xlabel('Mini-batch')
-    if save is not None:
-        plt.savefig(save + '_means')
-    plt.figure(figsize=(12, 9))
-    for i in range(learn.activation_stats.stats.shape[1]):
-        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
-        plt.plot(learn.activation_stats.stats[1][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
-    plt.title('Weight standard deviations')
-    plt.xlabel('Mini-batch')
-    plt.legend(fontsize=fontsz)
-    if save is not None:
-        plt.savefig(save + '_stds')

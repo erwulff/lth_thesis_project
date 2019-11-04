@@ -20,6 +20,7 @@ from fastai import train as tr
 from my_nn_modules import get_data
 
 
+# Functions for evaluation
 def time_encode_decode(model, dataframe, verbose=False):
     """Time the model's endoce and decode functions.
 
@@ -82,6 +83,7 @@ def validate(model, dl, loss_func):
         return val_loss
 
 
+# Functions for data retreival
 def get_orig_unnormed_data(path=None):
     if path is None:
         train = pd.read_pickle('../../processed_data/train.pkl')
@@ -99,6 +101,17 @@ def get_sub_data(ii):
     return train, test
 
 
+def db_from_df(train, test, bs=1024):
+    # Create TensorDatasets
+    train_ds = TensorDataset(torch.tensor(train.values), torch.tensor(train.values))
+    valid_ds = TensorDataset(torch.tensor(test.values), torch.tensor(test.values))
+    # Create DataLoaders
+    train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
+    # Return DataBunch
+    return basic_data.DataBunch(train_dl, valid_dl)
+
+
+# Functions for data normalization and reconstruction
 def normalized_reconstructions(model, unnormed_df, force_mean=None, force_std=None, idxs=None):
     if force_mean is None:
         mean = unnormed_df.mean()
@@ -162,16 +175,71 @@ def normalize(train, test, force_mean=None, force_std=None):
     return train, test
 
 
-def db_from_df(train, test, bs=1024):
-    # Create TensorDatasets
-    train_ds = TensorDataset(torch.tensor(train.values), torch.tensor(train.values))
-    valid_ds = TensorDataset(torch.tensor(test.values), torch.tensor(test.values))
-    # Create DataLoaders
-    train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
-    # Return DataBunch
-    return basic_data.DataBunch(train_dl, valid_dl)
+def log_normalize(train, test=None):
+    train['pT'] = train['pT'].apply(lambda x: np.log10(x) / 3.)
+    train['E'] = train['E'].apply(lambda x: np.log10(x) / 3.)
+    train['eta'] = train['eta'] / 3.
+    train['phi'] = train['phi'] / 3.
+    if test is not None:
+        test['pT'] = test['pT'].apply(lambda x: np.log10(x) / 3.)
+        test['E'] = test['E'].apply(lambda x: np.log10(x) / 3.)
+        test['eta'] = test['eta'] / 3.
+        test['phi'] = test['phi'] / 3.
+
+        return train.astype('float32'), test.astype('float32')
+    else:
+        return train.astype('float32')
 
 
+def get_log_normalized_dls(train, test, bs=1024):
+    """Get lognormalized DataLoaders from train and test DataFrames.
+
+    Parameters
+    ----------
+    train : DataFrame
+        Training data.
+    test : DataFrame
+        Test data.
+    bs : int
+        Batch size.
+
+    Returns
+    -------
+    (DataLoader, DataLoader)
+        Train and test DataLoaders.
+
+    """
+    train, test = log_normalize(train, test)
+    train_x = train
+    test_x = test
+    train_y = train_x  # y = x since we are building and AE
+    test_y = test_x
+
+    train_ds = TensorDataset(torch.tensor(train_x.values, dtype=torch.float), torch.tensor(train_y.values, dtype=torch.float))
+    valid_ds = TensorDataset(torch.tensor(test_x.values, dtype=torch.float), torch.tensor(test_y.values, dtype=torch.float))
+    train_dl, valid_dl = get_data(train_ds, valid_ds, bs)
+    return train_dl, valid_dl
+
+
+def logunnormalized_reconstructions(model, unnormed_df, idxs=None):
+    normed_df = log_normalize(unnormed_df.copy())
+
+    if idxs is not None:
+        data = torch.tensor(normed_df[idxs[0]:idxs[1]].values)
+        unnormed_df = torch.tensor(unnormed_df[idxs[0]:idxs[1]].values)
+    else:
+        data = torch.tensor(normed_df.values)
+        unnormed_df = torch.tensor(unnormed_df.values)
+
+    pred = model(data)
+    pred = pred * 3
+    pred[:, 0] = 10**(pred[:, 0])
+    pred[:, 3] = 10**(pred[:, 3])
+
+    return pred
+
+
+# Plotting functions
 def plot_residuals(pred, data, range=None, variable_names=['pT', 'eta', 'phi', 'E'], bins=1000, save=None, title=None):
     alph = 0.8
     residuals = (pred.numpy() - data.numpy()) / data.numpy()
@@ -210,6 +278,28 @@ def plot_histograms(pred, data, bins, same_bin_edges=True, colors=['orange', 'c'
         plt.legend()
 
 
+def plot_activations(learn, figsize=(12, 9), lines=['-', ':'], save=None, linewd=1, fontsz=14):
+    plt.figure(figsize=figsize)
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[0][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
+    plt.title('Weight means')
+    plt.legend(fontsize=fontsz)
+    plt.xlabel('Mini-batch')
+    if save is not None:
+        plt.savefig(save + '_means')
+    plt.figure(figsize=(12, 9))
+    for i in range(learn.activation_stats.stats.shape[1]):
+        thiscol = ms.colorprog(i, learn.activation_stats.stats.shape[1])
+        plt.plot(learn.activation_stats.stats[1][i], linewidth=linewd, color=thiscol, label=str(learn.activation_stats.modules[i]).split(',')[0], linestyle=lines[i % len(lines)])
+    plt.title('Weight standard deviations')
+    plt.xlabel('Mini-batch')
+    plt.legend(fontsize=fontsz)
+    if save is not None:
+        plt.savefig(save + '_stds')
+
+
+# Miscellaneous
 def replaceline_and_save(fname, findln, newline, override=False):
     if findln not in newline and not override:
         raise ValueError('Detected inconsistency!!!!')
