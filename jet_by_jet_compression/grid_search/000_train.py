@@ -102,7 +102,7 @@ def train_model(model, epochs, lr, wd, module_string):
     plt.close('all')
     learn = basic_train.Learner(data=db, model=model, loss_func=loss_func, wd=wd, callback_fns=ActivationStats, bn_wd=bn_wd, true_wd=true_wd)
     start = time.perf_counter()
-    learn.fit_one_cycle(epochs, max_lr=lr, wd=wd, callbacks=[SaveModelCallback(learn, every='improvement', monitor='valid_loss', name='best_%s_bs%s_lr%s_wd%s' % (module_string, bs, lr, wd))])
+    learn.fit_one_cycle(epochs, max_lr=lr, wd=wd, callbacks=[SaveModelCallback(learn, every='improvement', monitor='valid_loss', name='best_%s_bs%s_lr%.0e_wd%.0e' % (module_string, bs, lr, wd))])
     end = time.perf_counter()
     delta_t = end - start
     return learn, delta_t
