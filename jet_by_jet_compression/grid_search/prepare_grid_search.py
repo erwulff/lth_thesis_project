@@ -11,7 +11,7 @@ wds = np.array([0, 1e-5, 1e-4, 1e-3, 1e-2])
 pps = np.array([0.])
 bss = np.array([2048])
 
-base_script_name = '000_train_lognormalized.py'
+base_script_name = '000_train.py'
 
 nodes_list = [
     # [4, 50, 3, 50, 4],

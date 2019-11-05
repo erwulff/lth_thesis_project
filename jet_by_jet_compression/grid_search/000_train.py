@@ -76,7 +76,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 # loss_func = RMSELoss()
 loss_func = nn.MSELoss()
 
-bn_wd = False  # Don't use weight decay fpr batchnorm layers
+bn_wd = False  # Don't use weight decay for batchnorm layers
 true_wd = True  # wd will be used for all optimizers
 
 

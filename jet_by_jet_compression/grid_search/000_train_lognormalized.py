@@ -40,8 +40,10 @@ save_dict = {}
 # Load data
 train = pd.read_pickle(BIN + 'processed_data/train.pkl')
 test = pd.read_pickle(BIN + 'processed_data/test.pkl')
+train = train[(train['pT'] < 10000)]
+test = test[(test['pT'] < 10000)]
 
-unnormed_train = pd.read_pickle(BIN + 'processed_data/train.pkl')
+# unnormed_train = pd.read_pickle(BIN + 'processed_data/train.pkl')
 unnormed_test = pd.read_pickle(BIN + 'processed_data/test.pkl')
 
 # Normalize
@@ -52,7 +54,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 # loss_func = RMSELoss()
 loss_func = nn.MSELoss()
 
-bn_wd = False  # Don't use weight decay fpr batchnorm layers
+bn_wd = False  # Don't use weight decay for batchnorm layers
 true_wd = True  # wd will be used for all optimizers
 
 

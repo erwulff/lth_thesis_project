@@ -44,7 +44,7 @@ save_dict = {}
 train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
 test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
 
-bs = 128
+bs = 2048
 # Create TensorDatasets
 train_ds = TensorDataset(torch.tensor(train.values, dtype=torch.float), torch.tensor(train.values, dtype=torch.float))
 valid_ds = TensorDataset(torch.tensor(test.values, dtype=torch.float), torch.tensor(test.values, dtype=torch.float))
@@ -56,7 +56,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 # loss_func = RMSELoss()
 loss_func = nn.MSELoss()
 
-bn_wd = False  # Don't use weight decay fpr batchnorm layers
+bn_wd = False  # Don't use weight decay for batchnorm layers
 true_wd = True  # wd will be used for all optimizers
 
 
