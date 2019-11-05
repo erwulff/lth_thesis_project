@@ -237,9 +237,9 @@ def save_plots(learn, module_string, lr, wd, pp):
 
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     if pp is None:
-        curr_param_string = 'bs%d_lr%.0e_wd%.0e_ppNA_' % (bs, lr, wd)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_ppNA' % (bs, lr, wd)
     else:
-        curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e_' % (bs, lr, wd, pp)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e' % (bs, lr, wd, pp)
 
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd, module_string=module_string)
     time_string = str(datetime.timedelta(seconds=delta_t))
