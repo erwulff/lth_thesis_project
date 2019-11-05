@@ -38,6 +38,12 @@ class AE_basic(nn.Module):
 
         self.decoder = nn.Sequential(*de_modulelist)
 
+        node_string = ''
+        for layer in nodes:
+            node_string = node_string + str(layer) + '-'
+        node_string = node_string[:-1]
+        self.node_string = node_string
+
     def encode(self, x):
         return self.encoder(x)
 
@@ -46,6 +52,9 @@ class AE_basic(nn.Module):
 
     def forward(self, x):
         return self.decode(self.encode(x))
+
+    def get_node_string(self):
+        return self.node_string
 
 
 class AE_LeakyReLU(nn.Module):
@@ -77,6 +86,12 @@ class AE_LeakyReLU(nn.Module):
 
         self.decoder = nn.Sequential(*de_modulelist)
 
+        node_string = ''
+        for layer in nodes:
+            node_string = node_string + str(layer) + '-'
+        node_string = node_string[:-1]
+        self.node_string = node_string
+
     def encode(self, x):
         return self.encoder(x)
 
@@ -85,6 +100,9 @@ class AE_LeakyReLU(nn.Module):
 
     def forward(self, x):
         return self.decode(self.encode(x))
+
+    def get_node_string(self):
+        return self.node_string
 
 
 class AE_bn(nn.Module):
@@ -119,6 +137,12 @@ class AE_bn(nn.Module):
         self.encoder = nn.Sequential(*en_modulelist)
         self.decoder = nn.Sequential(*de_modulelist)
 
+        node_string = ''
+        for layer in nodes:
+            node_string = node_string + str(layer) + '-'
+        node_string = node_string[:-1]
+        self.node_string = node_string
+
     def encode(self, x):
         return self.encoder(x)
 
@@ -127,6 +151,9 @@ class AE_bn(nn.Module):
 
     def forward(self, x):
         return self.decode(self.encode(x))
+
+    def get_node_string(self):
+        return self.node_string
 
 
 class AE_bn_LeakyReLU(nn.Module):
@@ -159,6 +186,12 @@ class AE_bn_LeakyReLU(nn.Module):
         self.encoder = nn.Sequential(*en_modulelist)
         self.decoder = nn.Sequential(*de_modulelist)
 
+        node_string = ''
+        for layer in nodes:
+            node_string = node_string + str(layer) + '-'
+        node_string = node_string[:-1]
+        self.node_string = node_string
+
     def encode(self, x):
         return self.encoder(x)
 
@@ -167,6 +200,9 @@ class AE_bn_LeakyReLU(nn.Module):
 
     def forward(self, x):
         return self.decode(self.encode(x))
+
+    def get_node_string(self):
+        return self.node_string
 
 
 class AE_3D_100(nn.Module):
