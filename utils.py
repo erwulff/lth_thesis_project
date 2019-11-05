@@ -21,6 +21,10 @@ from my_nn_modules import get_data
 
 
 # Functions for evaluation
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
 def time_encode_decode(model, dataframe, verbose=False):
     """Time the model's endoce and decode functions.
 
