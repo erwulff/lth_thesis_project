@@ -245,9 +245,9 @@ def save_plots(learn, module_string, lr, wd, pp):
 
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     if pp is None:
-        curr_param_string = 'lr%.0e_wd%.0e_ppNA' % (lr, wd)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_ppNA' % (bs, lr, wd)
     else:
-        curr_param_string = 'lr%.0e_wd%.0e_pp%.0e' % (lr, wd, pp)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e' % (bs, lr, wd, pp)
 
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd, module_string=module_string)
     time_string = str(datetime.timedelta(seconds=delta_t))
@@ -260,7 +260,7 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
 
     save_dict[module_string].update({curr_param_string: {}})
     save_dict[module_string][curr_param_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
-        'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
+        'bs', 'lr', 'wd', 'pp'], 'hyper_parameters': [bs, lr, wd, pp], 'training_time_seconds': delta_t})
     curr_save_folder = get_mod_folder(module_string, lr, pp, wd)
     with open(curr_save_folder + 'save_dict%s.pkl' % curr_param_string, 'wb') as f:
         pickle.dump(save_dict, f, protocol=pickle.HIGHEST_PROTOCOL)

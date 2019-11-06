@@ -269,7 +269,7 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
 
     save_dict[module_string].update({curr_param_string: {}})
     save_dict[module_string][curr_param_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
-        'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
+        'bs', 'lr', 'wd', 'pp'], 'hyper_parameters': [bs, lr, wd, pp], 'training_time_seconds': delta_t})
     save_dict['train_mean'] = train_mean
     save_dict['train_std'] = train_std
     curr_save_folder = get_mod_folder(module_string, lr, pp, wd)
