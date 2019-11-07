@@ -114,7 +114,7 @@ def train_model(model, epochs, lr, wd, module_string):
 
 def get_mod_folder(module_string, lr, pp, wd):
     if pp is None:
-        curr_mod_folder = '%s_bs%d_lr%.0e_wd%.0e_pNA/' % (module_string, bs, lr, wd)
+        curr_mod_folder = '%s_bs%d_lr%.0e_wd%.0e_ppNA/' % (module_string, bs, lr, wd)
     else:
         curr_mod_folder = '%s_bs%d_lr%.0e_wd%.0e_p%.0e/' % (module_string, bs, lr, wd, pp)
     return curr_mod_folder
