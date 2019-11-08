@@ -41,8 +41,10 @@ save_dict = {}
 # Load data
 # train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train.pkl')
 # test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
-train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
-test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
+# train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
+# test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
+train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent')
+test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent')
 
 bs = 2048
 # Create TensorDatasets

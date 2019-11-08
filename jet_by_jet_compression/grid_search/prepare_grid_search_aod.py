@@ -6,10 +6,10 @@ import os
 from shutil import copy as cp
 from utils import replaceline_and_save as rl
 
-lrs = np.array([1e-2, 1e-3])
-wds = np.array([1e-6])
+lrs = np.array([1e-2, 1e-3, 1e-4])
+wds = np.array([0, 1e-4, 1e-2, 1e-1])
 pps = np.array([0.])
-bss = np.array([2048])
+bss = np.array([512, 1024, 2048])
 
 base_script_name = '001_train_aod.py'
 
@@ -26,27 +26,31 @@ nodes_list = [
     # [4, 100, 100, 50, 3, 50, 100, 100, 4],
     # [27, 100, 100, 100, 18, 100, 100, 100, 27],
     # [4, 200, 100, 50, 3, 50, 100, 200, 4],
+    # [27, 200, 200, 200, 14, 200, 200, 200, 27],
+    [27, 200, 200, 200, 16, 200, 200, 200, 27],
     [27, 200, 200, 200, 18, 200, 200, 200, 27],
+    [27, 200, 200, 200, 20, 200, 200, 200, 27],
+    # [27, 200, 200, 200, 22, 200, 200, 200, 27],
     # [27, 400, 200, 100, 18, 100, 200, 400, 27],
     # [4, 8, 8, 8, 8, 3, 8, 8, 8, 8, 4],
     # [4, 50, 50, 50, 50, 3, 50, 50, 50, 50, 4],
     # [27, 100, 100, 100, 100, 18, 100, 100, 100, 100, 27],
     # [27, 200, 200, 200, 100, 18, 100, 200, 200, 200, 27],
     # [4, 50, 50, 50, 50, 50, 3, 50, 50, 50, 50, 50, 4],
-    [27, 100, 100, 100, 100, 100, 18, 100, 100, 100, 100, 100, 27],
+    # [27, 100, 100, 100, 100, 100, 18, 100, 100, 100, 100, 100, 27],
     # [4, 200, 200, 200, 100, 100, 3, 100, 100, 100, 100, 100, 4],
     # [4, 100, 100, 100, 100, 100, 50, 3, 50, 100, 100, 100, 100, 100, 4],
     # [4, 200, 200, 200, 200, 200, 100, 3, 100, 200, 200, 200, 200, 200, 4]
 ]
 
 
-epochs = 200
+epochs = 250
 drop = False
-module_strings = ['AE_basic', 'AE_LeakyReLU', 'AE_bn_LeakyReLU']
+module_strings = ['AE_basic', 'AE_bn_LeakyReLU']
 
 for module_string in module_strings:
     # Create grid search folder
-    super_folder = module_string + '_AOD_grid_search/'
+    super_folder = module_string + '_AOD_grid_search_custom_normalization/'
     if not os.path.exists(super_folder):
         os.mkdir(super_folder)
 

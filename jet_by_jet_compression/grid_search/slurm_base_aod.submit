@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -A SNIC2019-5-139
-#SBATCH --gres=gpu:k80:1 ## Request GPU
+##SBATCH --gres=gpu:k80:1 ## Request GPU
 ##SBATCH --gres=gpu:v100:1,gpuexcl
-#SBATCH -t 5:00:00
+#SBATCH -t 23:59:59
 #SBATCH -o search_%j.out
 #SBATCH -e search_%j.err
 
