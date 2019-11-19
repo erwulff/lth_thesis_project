@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
+import pickle
 
 import torch
 import torch.nn as nn
@@ -14,7 +15,7 @@ from torch.utils.data import TensorDataset
 import my_matplotlib_style as ms
 
 
-from fastai import basic_data
+from fastai import basic_data, basic_train
 from fastai import train as tr
 
 from my_nn_modules import get_data
@@ -65,7 +66,16 @@ def time_encode_decode(model, dataframe, verbose=False):
 
 def rms(arr):
     arr = arr.flatten()
+    arr[arr == np.nan] = 1
     return np.sqrt(np.sum(arr**2) / len(arr))
+
+
+def nanrms(x, axis=None):
+    return np.sqrt(np.nanmean(x**2, axis=axis))
+
+
+def std_error(x, axis=None, ddof=0):
+    return np.nanstd(x, axis=axis, ddof=ddof) / np.sqrt(2 * len(x))
 
 
 def loss_batch(model, loss_func, xb, yb, opt=None):
@@ -329,3 +339,112 @@ def replaceline_and_save(fname, findln, newline, override=False):
 
     with open(fname, 'w') as fid:
         fid.writelines(lines)
+
+
+# Custom normalization for AOD data
+eta_div = 5
+emfrac_div = 1.6
+negE_div = 1.6
+phi_div = 3
+m_div = 1.8
+width_div = .6
+N90_div = 20
+timing_div = 40
+hecq_div = 1
+centerlambda_div = 2
+secondlambda_div = 1
+secondR_div = .6
+larqf_div = 2.5
+pt_div = 1.2
+centroidR_div = 0.8
+area4vecm_div = 0.18
+area4vecpt_div = 0.7
+area4vec_div = 0.8
+Oot_div = 0.3
+larq_div = 0.6
+
+log_add = 100
+log_sub = 2
+m_add = 1
+centroidR_sub = 3
+pt_sub = 1.3
+area4vecm_sub = 0.15
+
+
+def custom_normalization(train, test):
+    train_cp = train.copy()
+    test_cp = test.copy()
+
+    for data in [train_cp, test_cp]:
+        data['DetectorEta'] = data['DetectorEta'] / eta_div
+        data['ActiveArea4vec_eta'] = data['ActiveArea4vec_eta'] / eta_div
+        data['EMFrac'] = data['EMFrac'] / emfrac_div
+        data['NegativeE'] = np.log10(-data['NegativeE'] + 1) / negE_div
+        data['eta'] = data['eta'] / eta_div
+        data['phi'] = data['phi'] / phi_div
+        data['ActiveArea4vec_phi'] = data['ActiveArea4vec_phi'] / phi_div
+        data['Width'] = data['Width'] / width_div
+        data['WidthPhi'] = data['WidthPhi'] / width_div
+        data['N90Constituents'] = data['N90Constituents'] / N90_div
+        data['Timing'] = data['Timing'] / timing_div
+        data['HECQuality'] = data['HECQuality'] / hecq_div
+        data['ActiveArea'] = data['ActiveArea'] / area4vec_div
+        data['ActiveArea4vec_m'] = data['ActiveArea4vec_m'] / area4vecm_div - area4vecm_sub
+        data['ActiveArea4vec_pt'] = data['ActiveArea4vec_pt'] / area4vecpt_div
+        data['LArQuality'] = data['LArQuality'] / larq_div
+
+        data['m'] = np.log10(data['m'] + m_add) / m_div
+        data['LeadingClusterCenterLambda'] = (np.log10(data['LeadingClusterCenterLambda'] + log_add) - log_sub) / centerlambda_div
+        data['LeadingClusterSecondLambda'] = (np.log10(data['LeadingClusterSecondLambda'] + log_add) - log_sub) / secondlambda_div
+        data['LeadingClusterSecondR'] = (np.log10(data['LeadingClusterSecondR'] + log_add) - log_sub) / secondR_div
+        data['AverageLArQF'] = (np.log10(data['AverageLArQF'] + log_add) - log_sub) / larqf_div
+        data['pt'] = (np.log10(data['pt']) - pt_sub) / pt_div
+        data['LeadingClusterPt'] = np.log10(data['LeadingClusterPt']) / pt_div
+        data['CentroidR'] = (np.log10(data['CentroidR']) - centroidR_sub) / centroidR_div
+        data['OotFracClusters10'] = np.log10(data['OotFracClusters10'] + 1) / Oot_div
+        data['OotFracClusters5'] = np.log10(data['OotFracClusters5'] + 1) / Oot_div
+
+    return train_cp, test_cp
+
+
+def custom_unnormalize(normalized_data):
+    data = normalized_data.copy()
+    data['DetectorEta'] = data['DetectorEta'] * eta_div
+    data['ActiveArea4vec_eta'] = data['ActiveArea4vec_eta'] * eta_div
+    data['EMFrac'] = data['EMFrac'] * emfrac_div
+    data['eta'] = data['eta'] * eta_div
+    data['phi'] = data['phi'] * phi_div
+    data['ActiveArea4vec_phi'] = data['ActiveArea4vec_phi'] * phi_div
+    data['Width'] = data['Width'] * width_div
+    data['WidthPhi'] = data['WidthPhi'] * width_div
+    data['N90Constituents'] = data['N90Constituents'] * N90_div
+    data['Timing'] = data['Timing'] * timing_div
+    data['HECQuality'] = data['HECQuality'] * hecq_div
+    data['ActiveArea'] = data['ActiveArea'] * area4vec_div
+    data['ActiveArea4vec_m'] = (data['ActiveArea4vec_m'] + area4vecm_sub) * area4vecm_div
+    data['ActiveArea4vec_pt'] = data['ActiveArea4vec_pt'] * area4vecpt_div
+    data['LArQuality'] = data['LArQuality'] * larq_div
+
+    data['NegativeE'] = 1 - np.power(10, negE_div * data['NegativeE'])
+    data['m'] = np.power(10, m_div * data['m']) - m_add
+    data['LeadingClusterCenterLambda'] = np.power(10, centerlambda_div * data['LeadingClusterCenterLambda'] + log_sub) - log_add
+    data['LeadingClusterSecondLambda'] = np.power(10, secondlambda_div * data['LeadingClusterSecondLambda'] + log_sub) - log_add
+    data['LeadingClusterSecondR'] = np.power(10, secondR_div * data['LeadingClusterSecondR'] + log_sub) - log_add
+    data['AverageLArQF'] = np.power(10, larqf_div * data['AverageLArQF'] + log_sub) - log_add
+    data['pt'] = np.power(10, pt_div * data['pt'] + pt_sub)
+    data['LeadingClusterPt'] = np.power(10, pt_div * data['LeadingClusterPt'])
+    data['CentroidR'] = np.power(10, centroidR_div * data['CentroidR'] + centroidR_sub)
+    data['OotFracClusters10'] = np.power(10, Oot_div * data['OotFracClusters10']) - 1
+    data['OotFracClusters5'] = np.power(10, Oot_div * data['OotFracClusters5']) - 1
+
+    return data
+
+
+def round_to_input(pred, uniques, variable):
+    var = pred[variable].values.reshape(-1, 1)
+    diff = (var - uniques)
+    ind = np.apply_along_axis(lambda x: np.argmin(np.abs(x)), axis=1, arr=diff)
+    new_arr = -np.ones_like(var)
+    for ii in np.arange(new_arr.shape[0]):
+        new_arr[ii] = uniques[ind[ii]]
+    pred[variable] = new_arr

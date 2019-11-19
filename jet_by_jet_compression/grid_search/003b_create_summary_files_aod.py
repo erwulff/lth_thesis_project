@@ -30,43 +30,26 @@ from my_nn_modules import AE_basic, AE_bn_LeakyReLU
 
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
-# Load Bryan's data
-train = pd.read_pickle(BIN + 'processed_data/train.pkl')
-test = pd.read_pickle(BIN + 'processed_data/test.pkl')
-# Normalize
-train_mean = train.mean()
-train_std = train.std()
+# Load AOD data
+train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
+test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent.pkl')
 
-train = (train - train_mean) / train_std
-# Is this the right way to normalize? (only using train mean and std to normalize both train and test)
-test = (test - train_mean) / train_std
-
-train_x = train
-test_x = test
-train_y = train_x  # y = x since we are building and AE
-test_y = test_x
-
-train_ds = TensorDataset(torch.tensor(train_x.values), torch.tensor(train_y.values))
-valid_ds = TensorDataset(torch.tensor(test_x.values), torch.tensor(test_y.values))
-train_dl, valid_dl = get_data(train_ds, valid_ds, bs=1024)
+bs = 4096
+# Create TensorDatasets
+train_ds = TensorDataset(torch.tensor(train.values, dtype=torch.float), torch.tensor(train.values, dtype=torch.float))
+valid_ds = TensorDataset(torch.tensor(test.values, dtype=torch.float), torch.tensor(test.values, dtype=torch.float))
+# Create DataLoaders
+train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
+# Return DataBunch
 db = basic_data.DataBunch(train_dl, valid_dl)
-# # Load AOD data
-# train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
-# test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
-#
-# bs = 1024
-# # Create TensorDatasets
-# train_ds = TensorDataset(torch.tensor(train.values, dtype=torch.float), torch.tensor(train.values, dtype=torch.float))
-# valid_ds = TensorDataset(torch.tensor(test.values, dtype=torch.float), torch.tensor(test.values, dtype=torch.float))
-# # Create DataLoaders
-# train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
-# # Return DataBunch
-# db = basic_data.DataBunch(train_dl, valid_dl)
 
-module_name = 'AE_basic'
-module = AE_basic
-nodes = [27, 400, 400, 200, 20, 200, 400, 400, 27]
-grid_search_folder = module_name + '_test_grid_search/'
+module_name = 'AE_bn_LeakyReLU'
+# module = AE_basic
+# nodes = [27, 200, 200, 200, 20, 200, 200, 200, 27]
+# grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_9s_11s/'
+# grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs/'
+# grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs_12D10D8D/'
+grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_9s_11s_1000epochs/'
 loss_func = nn.MSELoss()
 
 plt.close('all')
@@ -146,6 +129,7 @@ with open(grid_search_folder + 'best_model_dict.pkl', 'wb') as f:
 
 arr_summary = arr_summary[1:]
 summary_df = pd.DataFrame(data=arr_summary, columns=['Module', 'Nodes', 'Batch size', 'Learning rate', 'Weight decay', 'Epoch', 'Validation loss', 'Training time'])
+summary_df = summary_df.astype(dtype={'Batch size': int, 'Learning rate': float, 'Weight decay': float, 'Epoch': int, 'Validation loss': float})
 summary_df = summary_df.sort_values(['Module', 'Nodes', 'Batch size', 'Learning rate', 'Weight decay'])
 summary_df.to_pickle(grid_search_folder + 'summary_df.pkl')
 summary_df.pop('Module')
