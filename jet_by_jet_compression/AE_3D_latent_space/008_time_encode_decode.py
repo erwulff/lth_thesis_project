@@ -30,7 +30,6 @@ train_mean = train.mean()
 train_std = train.std()
 
 train = (train - train_mean) / train_std
-# Is this the right way to normalize? (only using train mean and std to normalize both train and test)
 test = (test - train_mean) / train_std
 
 train_x = train

@@ -41,8 +41,12 @@ save_dict = {}
 # Load data
 train = pd.read_pickle(BIN + 'processed_data/train.pkl')
 test = pd.read_pickle(BIN + 'processed_data/test.pkl')
+# Filter out extreme jets (only 2 jets in this dataset)
+train = train[(train['pT'] < 10000)]
+test = test[(test['pT'] < 10000)]
+
 #train_lowpt = train[train['pT'] < 100]
-test_lowpt = test[test['pT'] < 100]
+# test_lowpt = test[test['pT'] < 100]
 # # Make dataset smaller
 # train = train[0:int(1e5)]
 # test = test[0:int(1e4)]
@@ -63,7 +67,7 @@ train_ds = TensorDataset(torch.tensor(train_x.values), torch.tensor(train_y.valu
 valid_ds = TensorDataset(torch.tensor(test_x.values), torch.tensor(test_y.values))
 
 # Low pT data
-test_lowpt = (test_lowpt - train_mean) / train_std  # Normalized by full dataset mean and std
+# test_lowpt = (test_lowpt - train_mean) / train_std  # Normalized by full dataset mean and std
 
 bs = 1024
 train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
@@ -72,7 +76,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 # loss_func = RMSELoss()
 loss_func = nn.MSELoss()
 
-bn_wd = False  # Don't use weight decay fpr batchnorm layers
+bn_wd = False  # Don't use weight decay for batchnorm layers
 true_wd = True  # wd will be used for all optimizers
 
 
@@ -102,7 +106,7 @@ def train_model(model, epochs, lr, wd, module_string):
     plt.close('all')
     learn = basic_train.Learner(data=db, model=model, loss_func=loss_func, wd=wd, callback_fns=ActivationStats, bn_wd=bn_wd, true_wd=true_wd)
     start = time.perf_counter()
-    learn.fit_one_cycle(epochs, max_lr=lr, wd=wd, callbacks=[SaveModelCallback(learn, every='improvement', monitor='valid_loss', name='best_%s_bs%s_lr%s_wd%s' % (module_string, bs, lr, wd))])
+    learn.fit_one_cycle(epochs, max_lr=lr, wd=wd, callbacks=[SaveModelCallback(learn, every='improvement', monitor='valid_loss', name='best_%s_bs%s_lr%.0e_wd%.0e' % (module_string, bs, lr, wd))])
     end = time.perf_counter()
     delta_t = end - start
     return learn, delta_t
@@ -110,9 +114,9 @@ def train_model(model, epochs, lr, wd, module_string):
 
 def get_mod_folder(module_string, lr, pp, wd):
     if pp is None:
-        curr_mod_folder = '%s_bs%d_lr%.0e_pNA_wd%.0e/' % (module_string, bs, lr, wd)
+        curr_mod_folder = '%s_bs%d_lr%.0e_wd%.0e_ppNA/' % (module_string, bs, lr, wd)
     else:
-        curr_mod_folder = '%s_bs%d_lr%.0e_p%.0e_wd%.0e/' % (module_string, bs, lr, pp, wd)
+        curr_mod_folder = '%s_bs%d_lr%.0e_wd%.0e_p%.0e/' % (module_string, bs, lr, wd, pp)
     return curr_mod_folder
 
 
@@ -147,8 +151,8 @@ def save_plots(learn, module_string, lr, wd, pp):
     plt.ylabel(loss_name)
     plt.yscale('log')
     plt.xlabel('Epoch')
-    for i_val, val in enumerate(learn.recorder.val_losses):
-        plt.text(i_val, val, str(val), horizontalalignment='center')
+    # for i_val, val in enumerate(learn.recorder.val_losses):
+    #     plt.text(i_val, val, str(val), horizontalalignment='center')
     fig_name = 'losses_val'
     plt.savefig(curr_save_folder + fig_name + '.png')
     with open(curr_save_folder + 'losses.txt', 'w') as f:
@@ -250,9 +254,9 @@ def save_plots(learn, module_string, lr, wd, pp):
 
 def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
     if pp is None:
-        curr_param_string = 'bs%d_lr%.0e_wd%.0e_ppNA_' % (bs, lr, wd)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_ppNA' % (bs, lr, wd)
     else:
-        curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e_' % (bs, lr, wd, pp)
+        curr_param_string = 'bs%d_lr%.0e_wd%.0e_pp%.0e' % (bs, lr, wd, pp)
 
     learn, delta_t = train_model(model, epochs=epochs, lr=lr, wd=wd, module_string=module_string)
     time_string = str(datetime.timedelta(seconds=delta_t))
@@ -265,7 +269,9 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
 
     save_dict[module_string].update({curr_param_string: {}})
     save_dict[module_string][curr_param_string].update({'val_losses': val_losses, 'train_losses': train_losses, 'hyper_parameter_names': [
-        'lr', 'wd', 'pp'], 'hyper_parameters': [lr, wd, pp], 'training_time_seconds': delta_t})
+        'bs', 'lr', 'wd', 'pp'], 'hyper_parameters': [bs, lr, wd, pp], 'training_time_seconds': delta_t})
+    save_dict['train_mean'] = train_mean
+    save_dict['train_std'] = train_std
     curr_save_folder = get_mod_folder(module_string, lr, pp, wd)
     with open(curr_save_folder + 'save_dict%s.pkl' % curr_param_string, 'wb') as f:
         pickle.dump(save_dict, f, protocol=pickle.HIGHEST_PROTOCOL)

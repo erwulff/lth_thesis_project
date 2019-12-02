@@ -23,14 +23,13 @@ from fastai import basic_train, basic_data
 from fastai.callbacks import ActivationStats
 from fastai import train as tr
 
-from my_nn_modules import AE_basic, AE_bn, AE_LeakyReLU, AE_bn_LeakyReLU, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
+from my_nn_modules import AE_basic, AE_bn, AE_big, AE_3D_50, AE_3D_50_bn_drop, AE_3D_50cone, AE_3D_100, AE_3D_100_bn_drop, AE_3D_100cone_bn_drop, AE_3D_200, AE_3D_200_bn_drop, AE_3D_500cone_bn, AE_3D_500cone_bn
 from my_nn_modules import get_data, RMSELoss
+import utils
 from utils import plot_activations
-
 import matplotlib as mpl
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
-print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
 
 lr = 1e-3
 wds = 1e-5
@@ -39,20 +38,17 @@ pp = 0
 save_dict = {}
 
 # Load data
-# train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train.pkl')
-# test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
-# train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
-# test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
-train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent')
-test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent')
+train = pd.read_pickle(BIN + 'processed_data/train.pkl')
+test = pd.read_pickle(BIN + 'processed_data/test.pkl')
+train = train[(train['pT'] < 10000)]
+test = test[(test['pT'] < 10000)]
 
-bs = 2048
-# Create TensorDatasets
-train_ds = TensorDataset(torch.tensor(train.values, dtype=torch.float), torch.tensor(train.values, dtype=torch.float))
-valid_ds = TensorDataset(torch.tensor(test.values, dtype=torch.float), torch.tensor(test.values, dtype=torch.float))
-# Create DataLoaders
-train_dl, valid_dl = get_data(train_ds, valid_ds, bs=bs)
-# Return DataBunch
+# unnormed_train = pd.read_pickle(BIN + 'processed_data/train.pkl')
+unnormed_test = pd.read_pickle(BIN + 'processed_data/test.pkl')
+
+# Normalize
+bs = 1024
+train_dl, valid_dl = utils.get_log_normalized_dls(train, test, bs=bs)
 db = basic_data.DataBunch(train_dl, valid_dl)
 
 # loss_func = RMSELoss()
@@ -69,19 +65,6 @@ variable_list = [r'$p_T$', r'$\eta$', r'$\phi$', r'$E$']
 line_style = ['--', '-']
 colors = ['orange', 'c']
 markers = ['*', 's']
-
-
-def get_unnormalized_reconstructions(model, df, train_mean, train_std, idxs=None):
-    if idxs is not None:
-        data = torch.tensor(df[idxs[0]:idxs[1]].values)
-    else:
-        data = torch.tensor(df.values)
-    pred = model(data).detach().numpy()
-    pred = np.multiply(pred, train_std.values)
-    pred = np.add(pred, train_mean.values)
-    data = np.multiply(data, train_std.values)
-    data = np.add(data, train_mean.values)
-    return pred, data
 
 
 def train_model(model, epochs, lr, wd, module_string):
@@ -126,6 +109,7 @@ def save_plots(learn, module_string, lr, wd, pp):
     plt.xlabel('Batches processed')
     fig_name = 'losses'
     plt.savefig(curr_save_folder + fig_name)
+
     plt.figure()
     plt.plot(learn.recorder.val_losses, label='Validation', color='orange')
     plt.title('Validation loss')
@@ -141,23 +125,45 @@ def save_plots(learn, module_string, lr, wd, pp):
         for i_val, val in enumerate(learn.recorder.val_losses):
             f.write('Epoch %d    Validation %s: %e    Training %s: %e\n' % (i_val, loss_name, val, loss_name, learn.recorder.losses[(i_val + 1) * (int(batches / epos - 1))]))
 
-    # Histograms
-    # idxs = (0, 100000)  # Choose events to compare
-    # pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
-    # data = test[0:100000].values
-    # pred = learn.model(torch.tensor(data, dtype=torch.float))
+    # residual_strings = [r'$(p_{T,recon} - p_{T,true}) / p_{T,true}$',
+    #                     r'$(\eta_{recon} - \eta_{true}) / \eta_{true}$',
+    #                     r'$(\phi_{recon} - \phi_{true}) / \phi_{true}$',
+    #                     r'$(E_{recon} - E_{true}) / E_{true}$']
+    # idxs = (0, int(1e5))  # Choose events to compare
+    # data = torch.tensor(unnormed_test[idxs[0]:idxs[1]].values)
+    # pred = utils.logunnormalized_reconstructions(learn.model, unnormed_test, idxs=idxs)
+    # residuals = (pred.detach().numpy() - data.detach().numpy()) / data.detach().numpy()
+    # range = (-.1, .1)
+    # for kk in np.arange(4):
+    #     plt.figure()
+    #     n_hist_pred, bin_edges, _ = plt.hist(
+    #         residuals[:, kk], label='Residuals', linestyle=line_style[0], bins=200, range=range)
+    #     plt.suptitle('Residuals of %s' % train.columns[kk])
+    #     plt.xlabel(residual_strings[kk])  # (train.columns[kk], train.columns[kk], train.columns[kk]))
+    #     plt.ylabel('Number of jets')
+    #     plt.yscale('log')
+    #     rms = utils.rms(residuals[:, kk])
+    #     ax = plt.gca()
+    #     plt.text(.2, .5, 'RMS = %f' % (rms), bbox={'facecolor': 'white', 'alpha': 0.7, 'pad': 10},
+    #              horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=20)
+    #     fig_name = 'residuals_%s' % train.columns[kk]
+    #     plt.savefig(curr_save_folder + fig_name + '.png')
+    #
+    # # Histograms
+    # idxs = (0, int(1e5))  # Choose events to compare
+    # data = torch.tensor(unnormed_test[idxs[0]:idxs[1]].values)
+    # pred = utils.logunnormalized_reconstructions(learn.model, unnormed_test, idxs=idxs)
     #
     # alph = 0.8
-    # n_bins = 80
-    # for kk in np.arange(27):
+    # n_bins = 50
+    # for kk in np.arange(4):
     #     plt.figure()
     #     n_hist_data, bin_edges, _ = plt.hist(data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins)
     #     n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0], label='Output', alpha=alph, bins=bin_edges)
     #     plt.suptitle(train.columns[kk])
-    #     # plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
-    #     plt.xlabel(train.columns[kk])
+    #     plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
     #     plt.ylabel('Number of events')
-    #     plt.yscale('log')
+    #     ms.sciy()
     #     fig_name = 'hist_%s' % train.columns[kk]
     #     plt.savefig(curr_save_folder + fig_name)
 
