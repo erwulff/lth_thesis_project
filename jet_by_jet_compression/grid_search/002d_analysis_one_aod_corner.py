@@ -143,7 +143,7 @@ rel_diff_list = ['m',
 
 for var in rel_diff_list:
     residuals[var] = residuals[var] / data[var]
-res_df = pd.DataFrame(residuals, columns=test.columns)
+# res_df = pd.DataFrame(residuals, columns=test.columns)
 
 
 lab_dict = {

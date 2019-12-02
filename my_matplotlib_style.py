@@ -9,8 +9,8 @@ def set_my_style():
     mpl.rcParams['lines.color'] = 'r'
 
     # axis
-    mpl.rcParams[axes.titlesize] = 26
-    mpl.rcParams[axes.grid] = True
+    mpl.rcParams['axes.titlesize'] = 26
+    mpl.rcParams['axes.grid'] = True
 
 
 def sciy():

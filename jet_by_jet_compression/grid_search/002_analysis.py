@@ -64,10 +64,12 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 # # Return DataBunch
 # db = basic_data.DataBunch(train_dl, valid_dl)
 
-module_name = 'AE_basic'
-module = AE_basic
+# module_name = 'AE_basic'
+# module = AE_basic
+module_name = 'AE_bn_LeakyReLU'
+module = AE_bn_LeakyReLU
 # nodes = [27, 400, 400, 200, 20, 200, 400, 400, 27]
-grid_search_folder = module_name + '_test_grid_search/'
+grid_search_folder = module_name + '_lognormalized_grid_search/'
 loss_func = nn.MSELoss()
 
 plt.close('all')

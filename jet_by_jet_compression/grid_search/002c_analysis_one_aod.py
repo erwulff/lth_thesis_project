@@ -117,6 +117,7 @@ pred_df = pd.DataFrame(pred, columns=test.columns)
 
 # Unnormalize
 unnormalized_data_df = utils.custom_unnormalize(data_df)
+unnormalized_data_df = data_df
 unnormalized_pred_df = utils.custom_unnormalize(pred_df)
 
 # Handle variables with discrete distributions
@@ -133,16 +134,16 @@ n_bins = 200
 for kk in np.arange(len(test.columns)):
     plt.figure()
     n_hist_data, bin_edges, _ = plt.hist(
-        data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins, density=True)
-    n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0],
-                                 label='Output', alpha=alph, bins=n_bins, density=True)
+        data[:, kk], label='Input', alpha=1, bins=n_bins, density=True)
+    # n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0],
+    #                              label='Output', alpha=alph, bins=n_bins, density=True)
     plt.suptitle(test.columns[kk])
     plt.xlabel(test.columns[kk])
-    plt.ylabel('Number of events')
-    # ms.sciy()
-    plt.yscale('log')
-    plt.legend()
-    fig_name = 'hist_18_%s' % train.columns[kk]
+    plt.ylabel('Number of jets')
+    ms.sciy()
+    # plt.yscale('log')
+    # plt.legend()
+    fig_name = 'normalized_hist_%s' % train.columns[kk]
     if save:
         plt.savefig(curr_save_folder + fig_name)
 
@@ -227,7 +228,7 @@ for kk, key in enumerate(test.keys()):
     range = tuple(qs)
     n_hist_pred, bin_edges, _ = plt.hist(
         curr_residuals, label='Residuals', linestyle=line_style[0], alpha=alph, bins=100, range=range)
-    plt.suptitle('Varaible name: %s' % train.columns[kk])
+    plt.suptitle('Variable name: %s' % train.columns[kk])
     # (train.columns[kk], train.columns[kk], train.columns[kk]))
     # plt.xlabel('Residuals of %s' % test.columns[kk])
     plt.xlabel(lab_dict[key])
