@@ -43,8 +43,8 @@ save_dict = {}
 # test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test.pkl')
 # train = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_train_10percent.pkl')  # Smaller dataset fits in memory on Kebnekaise
 # test = pd.read_pickle(BIN + 'processed_data/aod/scaled_all_jets_partial_test_10percent.pkl')
-train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent')
-test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent')
+train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent.pkl')
+test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent.pkl')
 
 bs = 2048
 # Create TensorDatasets
@@ -141,6 +141,7 @@ def save_plots(learn, module_string, lr, wd, pp):
         for i_val, val in enumerate(learn.recorder.val_losses):
             f.write('Epoch %d    Validation %s: %e    Training %s: %e\n' % (i_val, loss_name, val, loss_name, learn.recorder.losses[(i_val + 1) * (int(batches / epos - 1))]))
 
+    # Uncomment this in order to plot histograms and residuals at the end of training
     # Histograms
     # idxs = (0, 100000)  # Choose events to compare
     # pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
@@ -176,50 +177,7 @@ def save_plots(learn, module_string, lr, wd, pp):
     #     ms.sciy()
     #     fig_name = 'plot_%s' % train_x.columns[kk]
     #     plt.savefig(curr_save_folder + fig_name)
-    #
-    # # Plot latent space
-    # data = torch.tensor(test_x.values)
-    # latent = learn.model.encode(data).detach().numpy()
-    # for ii in np.arange(latent.shape[1]):
-    #     plt.figure()
-    #     plt.hist(latent[:, ii], label='$z_%d$' % (ii + 1), color='m')
-    #     plt.suptitle('Latent variable #%d' % (ii + 1))
-    #     plt.legend()
-    #     ms.sciy()
-    #     fig_name = 'latent_hist_z%d' % (ii + 1)
-    #     plt.savefig(curr_save_folder + fig_name)
-    #
-    # # Latent space scatter plots
-    # idxs = (0, 10000)  # Choose events to compare
-    # data = torch.tensor(test_x[idxs[0]:idxs[1]].values)
-    # latent = learn.model.encode(data).detach().numpy()
-    # mksz = 1
-    # plt.figure()
-    # plt.scatter(latent[:, 0], latent[:, 1], s=mksz)
-    # plt.xlabel(r'$z_1$')
-    # plt.ylabel(r'$z_2$')
-    # fig_name = 'latent_scatter_z1z2'
-    # plt.savefig(curr_save_folder + fig_name)
-    #
-    # plt.figure()
-    # plt.scatter(latent[:, 0], latent[:, 2], s=mksz)
-    # plt.xlabel(r'$z_1$')
-    # plt.ylabel(r'$z_3$')
-    # fig_name = 'latent_scatter_z1z3'
-    # plt.savefig(curr_save_folder + fig_name)
-    #
-    # plt.figure()
-    # plt.scatter(latent[:, 1], latent[:, 2], s=mksz)
-    # plt.xlabel(r'$z_2$')
-    # plt.ylabel(r'$z_3$')
-    # fig_name = 'latent_scatter_z2z3'
-    # plt.savefig(curr_save_folder + fig_name)
-    #
-    # # Low pT histograms
-    # # Histograms
-    # idxs = (0, 100000)  # Choose events to compare
-    # pred, data = get_unnormalized_reconstructions(learn.model, df=test_x, idxs=idxs, train_mean=train_mean, train_std=train_std)
-    #
+
     # alph = 0.8
     # n_bins = 50
     # for kk in np.arange(4):
@@ -265,9 +223,9 @@ def train_and_save(model, epochs, lr, wd, pp, module_string, save_dict):
 
 one_epochs = 1
 one_lr = 1e-2
-one_wd = 1e-3
+one_wd = 1e-2
 one_pp = None
-one_module = AE_3D_50
+one_module = AE_bn_LeakyReLU
 
 
 def one_run(module, epochs, lr, wd, pp):
@@ -280,7 +238,7 @@ def one_run(module, epochs, lr, wd, pp):
         print('...done')
     else:
         print('Training %s with lr=%.1e, p=None, wd=%.1e ...' % (module_string, lr, wd))
-        curr_model = module()
+        curr_model = module([27, 200, 200, 200, 14, 200, 200, 200, 27])
         train_and_save(curr_model, epochs, lr, wd, pp, module_string, save_dict)
         print('...done')
 

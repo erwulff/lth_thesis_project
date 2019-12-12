@@ -46,7 +46,7 @@ nodes_list = [
 
 epochs = 250
 drop = False
-module_strings = ['AE_basic', 'AE_bn_LeakyReLU']
+module_strings = ['AE_bn_LeakyReLU']
 
 for module_string in module_strings:
     # Create grid search folder
