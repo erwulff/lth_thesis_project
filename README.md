@@ -4,15 +4,21 @@ This repository contains the code I wrote while working on my master's thesis pr
 
 The project can be divided in two stages. One where the jet 4-momentum is compressed to three variables using a 3D latent space autoencoder (AE) and one where 27 different jet variables are compressed into a varying number of latent space dimension.
 
-### The 4 varaible input AEs
+## Data preprocessing
+
+#### The 4 varaible input
 
 The data was extracted from a ROOT with `process_ROOT_data.ipynb`.
 
 Some initial experimentation was done in the `first_tutorial` folder.
 
-### The 27 variable input AEs
+#### The 27 variable input
 
-The data was extracted from a derived AOD with TLA data using `process_AOD_data_all_jets.ipynb`.
+The data was extracted from a derived AOD with TLA data using `process_AOD_data_all_jets.ipynb`. The data was normalized in `aod_custom_normalization.ipynb` located in `lth_thesis_project/jet_by_jet_compression/aod_compression/`.
+
+
+### Independent evaluation with a signal Monte-Carlo sample
+A signal MC sample of a Dark Matter (DM) mediator decaying into jets was used for independent evaluation of the AEs. For this the 'process_MC_data.ipynb' notebook was used to preprocess the data.
 
 
 
