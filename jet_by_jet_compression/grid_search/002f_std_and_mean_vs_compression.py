@@ -114,7 +114,8 @@ model_folders = ['AE_27_200_200_200_8_200_200_200_27',
                  'AE_27_200_200_200_14_200_200_200_27',
                  'AE_27_200_200_200_16_200_200_200_27',
                  'AE_27_200_200_200_18_200_200_200_27',
-                 'AE_27_200_200_200_20_200_200_200_27']
+                 #'AE_27_200_200_200_20_200_200_200_27',
+                 ]
 
 best_train_folder_dict = {'AE_27_200_200_200_8_200_200_200_27': 'AE_bn_LeakyReLU_bs4096_lr1e-02_wd1e-04_ppNA',
                           'AE_27_200_200_200_10_200_200_200_27': 'AE_bn_LeakyReLU_bs4096_lr1e-03_wd1e-02_ppNA',
@@ -236,13 +237,13 @@ for key in test.keys():
     for performance in performances:
         plt.plot(best_to_worst_dict[performance]['latent_space'], best_to_worst_dict[performance][key]['std'], style_dict[performance], linestyle='-', label='%s: Standard deviation' % performance)
         plt.plot(best_to_worst_dict[performance]['latent_space'], best_to_worst_dict[performance][key]['mean'], style_dict[performance], linestyle='--', label='%s: Mean' % performance)
-        plt.legend(fontsize=14)
+        plt.legend(fontsize=20)
         plt.xlabel('Latent space dimensions')
-        plt.ylabel('Validation loss')
+        plt.ylabel('Mean and Std')
         plt.suptitle('Statistics of: %s' % lab_dict[key])
         plt.subplots_adjust(left=0.15)
     if save:
-        fig_name = 'all_compression_%s_plot' % key
+        fig_name = 'no20_all_compression_%s_plot' % key
         plt.savefig(grid_search_folder + 'statistics_vs_compression_figures/' + fig_name)
 
 if not save:

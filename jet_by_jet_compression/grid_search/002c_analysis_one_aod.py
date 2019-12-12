@@ -29,12 +29,21 @@ import numpy as np
 
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
+latent_dim = 18
+input_dim = 25
+
 # Load AOD data
 # Smaller dataset fits in memory on Kebnekaise
 train = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_train_10percent.pkl')
 test = pd.read_pickle(BIN + 'processed_data/aod/custom_normalized_test_10percent.pkl')
 train = train[train['m'] > 1e-3]
 test = test[test['m'] > 1e-3]
+
+if input_dim == 25:
+    train.pop('Width')
+    train.pop('WidthPhi')
+    test.pop('Width')
+    test.pop('WidthPhi')
 
 bs = 1024
 # Create TensorDatasets
@@ -50,9 +59,9 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 module_name = 'AE_bn_LeakyReLU'
 module = AE_bn_LeakyReLU
 
-grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs/'
+grid_search_folder = module_name + '_25AOD_grid_search_custom_normalization_1500epochs/'
 # grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs_12D10D8D/'
-model_folder = 'AE_27_200_200_200_18_200_200_200_27'
+model_folder = 'AE_%d_200_200_200_%d_200_200_200_%d' % (input_dim, latent_dim, input_dim)
 train_folder = 'AE_bn_LeakyReLU_bs4096_lr1e-02_wd1e-02_ppNA'
 # train_folder = 'AE_bn_LeakyReLU_bs4096_lr3e-02_wd1e-04_ppNA'
 save = True
@@ -117,7 +126,7 @@ pred_df = pd.DataFrame(pred, columns=test.columns)
 
 # Unnormalize
 unnormalized_data_df = utils.custom_unnormalize(data_df)
-unnormalized_data_df = data_df
+# unnormalized_data_df = data_df
 unnormalized_pred_df = utils.custom_unnormalize(pred_df)
 
 # Handle variables with discrete distributions
@@ -134,16 +143,16 @@ n_bins = 200
 for kk in np.arange(len(test.columns)):
     plt.figure()
     n_hist_data, bin_edges, _ = plt.hist(
-        data[:, kk], label='Input', alpha=1, bins=n_bins, density=True)
-    # n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0],
-    #                              label='Output', alpha=alph, bins=n_bins, density=True)
+        data[:, kk], color=colors[1], label='Input', alpha=1, bins=n_bins, density=False)
+    n_hist_pred, _, _ = plt.hist(pred[:, kk], color=colors[0],
+                                 label='Output', alpha=alph, bins=n_bins, density=False)
     plt.suptitle(test.columns[kk])
     plt.xlabel(test.columns[kk])
     plt.ylabel('Number of jets')
     ms.sciy()
     # plt.yscale('log')
-    # plt.legend()
-    fig_name = 'normalized_hist_%s' % train.columns[kk]
+    plt.legend()
+    fig_name = 'hist_%s' % train.columns[kk]
     if save:
         plt.savefig(curr_save_folder + fig_name)
 
@@ -243,7 +252,7 @@ for kk, key in enumerate(test.keys()):
     ax = plt.gca()
     plt.text(.75, .8, 'Mean=%f$\pm$%f\n$\sigma$=%f$\pm$%f' % (mean, sem, std, std_err), bbox={'facecolor': 'white', 'alpha': 0.7, 'pad': 10},
              horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=20)
-    fig_name = 'residual_18_%s' % train.columns[kk]
+    fig_name = 'residual_%d_%s' % (latent_dim, train.columns[kk])
     if save:
         plt.savefig(curr_save_folder + fig_name)
 
@@ -264,7 +273,7 @@ def frame(var):
         f.write('\n')
         f.write(r'\text{Bad}')
         f.write('\n')
-        f.write(r'\includegraphics[width=1.1\textwidth]{residual_worst_18_%s.png}' % var)
+        f.write(r'\includegraphics[width=1.1\textwidth]{residual_worst_%d_%s.png}' % (latent_dim, var))
         f.write('\n')
         f.write(r'\end{column}')
         f.write('\n')
@@ -274,7 +283,7 @@ def frame(var):
         f.write('\n')
         f.write(r'\text{Best}')
         f.write('\n')
-        f.write(r'\includegraphics[width=1.1\textwidth]{residual_good_18_%s.png}' % var)
+        f.write(r'\includegraphics[width=1.1\textwidth]{residual_good_%d_%s.png}' % (latent_dim, var))
         f.write('\n')
         f.write(r'\end{column}')
         f.write('\n')
