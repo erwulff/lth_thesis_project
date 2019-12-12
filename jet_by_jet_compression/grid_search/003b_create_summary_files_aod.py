@@ -50,7 +50,8 @@ module_name = 'AE_bn_LeakyReLU'
 # grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs/'
 # grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs_12D10D8D/'
 # grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_9s_11s_1000epochs/'
-grid_search_folder = module_name + '_lognormalized_grid_search/'
+# grid_search_folder = module_name + '_lognormalized_grid_search/'
+grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_500epochs_no1cycle/'
 loss_func = nn.MSELoss()
 
 plt.close('all')
