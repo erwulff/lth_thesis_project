@@ -6,7 +6,7 @@ The project can be divided in two parts. One where the jet 4-momentum is compres
 
 ## Data preprocessing
 
-#### The 4 varaible input
+#### The 4 variable input
 The data was extracted from a ROOT file with `process_ROOT_data.ipynb`.
 
 #### The 27 variable input
