@@ -30,7 +30,7 @@ import numpy as np
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 latent_dim = 18
-input_dim = 25
+input_dim = 27
 
 # Load AOD data
 # Smaller dataset fits in memory on Kebnekaise
@@ -59,7 +59,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 module_name = 'AE_bn_LeakyReLU'
 module = AE_bn_LeakyReLU
 
-grid_search_folder = module_name + '_25AOD_grid_search_custom_normalization_1500epochs/'
+grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs/'
 # grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs_12D10D8D/'
 model_folder = 'AE_%d_200_200_200_%d_200_200_200_%d' % (input_dim, latent_dim, input_dim)
 train_folder = 'AE_bn_LeakyReLU_bs4096_lr1e-02_wd1e-02_ppNA'

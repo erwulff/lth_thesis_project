@@ -32,7 +32,7 @@ import seaborn as sns
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 latent_dim = 18
-input_dim = 25
+input_dim = 27
 
 # Load AOD data
 # Smaller dataset fits in memory on Kebnekaise
@@ -61,7 +61,7 @@ db = basic_data.DataBunch(train_dl, valid_dl)
 module_name = 'AE_bn_LeakyReLU'
 module = AE_bn_LeakyReLU
 
-grid_search_folder = module_name + '_25AOD_grid_search_custom_normalization_1500epochs/'
+grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500epochs/'
 model_folder = 'AE_%d_200_200_200_%d_200_200_200_%d' % (input_dim, latent_dim, input_dim)
 train_folder = 'AE_bn_LeakyReLU_bs4096_lr1e-02_wd1e-02_ppNA'
 save = True
@@ -146,6 +146,8 @@ diff_list = ['ActiveArea',
 
 rel_diff_list = ['m',
                  'pt',
+                 #'phi',
+                 #'eta',
                  'LeadingClusterPt']
 
 for var in rel_diff_list:
@@ -242,7 +244,7 @@ for i_group, group in enumerate(corner_groups):
     mpl.rcParams['xtick.labelsize'] = 12
     mpl.rcParams['ytick.labelsize'] = 12
     group_arr = group_df.values
-    qs = np.quantile(group_arr, q=[.0005, .9995], axis=0)
+    qs = np.quantile(group_arr, q=[.0025, .9925], axis=0)
     ndim = qs.shape[1]
     ranges = [tuple(qs[:, kk]) for kk in np.arange(ndim)]
     figure = corner(group_arr, range=ranges, plot_density=True, plot_contours=True, no_fill_contours=False, #range=[range for i in np.arange(ndim)],
