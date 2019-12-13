@@ -17,21 +17,17 @@ The neural network architectures used throughout this project are defined as pyt
 
 'utils.py' contains definitions of useful functions used for preprocessing data, evaluation etc.
 
-## Training
+## Training and evaluation
 
 #### 4 varaible input AEs
 These were mostly trained "by hand" using jupyter notebooks located in `lth_thesis_project/jet_by_jet_compression/AE_3D_latent_space/`, `lth_thesis_project/jet_by_jet_compression/AE_2D_latent_space/` and `lth_thesis_project/jet_by_jet_compression/fastai_AE_3D`.
+
+The best performing model was trained in `lth_thesis_project/jet_by_jet_compression/fastai_AE_3D/fastai_AE_3D_200_no1cycle.ipynb`. The script `load_and_test_best_model.py` in `lth_thesis_project/jet_by_jet_compression/fastai_AE_3D/` can be used to load and test the trained model.
 
 Some grid searches were also run. Those can be found in `lth_thesis_project/jet_by_jet_compression/grid_search/`.
 
 #### 27 Variable input AEs
 These were mostly trained on LUNARC's Aurora and on HPC2N's Kebnekaise which are High Performance Computing (HPC) clusters located in Sweden. The scripts `prepare_grid_search_aod.py` and `prepare_grid_search_aurora.py` were used to create folders and training scripts with different combinations of hyperparameters as well as a bash script used to launch the the grid search on the HPC clusters. The scripts can be found in `lth_thesis_project/jet_by_jet_compression/grid_search/`
-
-## Evaluation
-
-In the notebooks where networks were trained they were also often evaluated, producing plots of input and output distributions of all variables and their residuals.
-
-#### 27 Variable input AEs
 
 A series of scripts were used to evaluate and summarize the results from hyperparameter grid searches. They can be found in `lth_thesis_project/jet_by_jet_compression/grid_search/`.
 
