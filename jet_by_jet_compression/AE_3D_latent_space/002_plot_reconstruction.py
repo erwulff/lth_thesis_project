@@ -70,10 +70,11 @@ for kk in np.arange(4):
     plt.suptitle(train.columns[kk])
     plt.xlabel(variable_list[kk] + ' ' + unit_list[kk])
     plt.ylabel('Number of jets')
-    if (kk == 0) or (kk == 3):
-        plt.yscale('log')
-    else:
-        ms.sciy()
+    #if (kk == 0) or (kk == 3):
+    #    plt.yscale('log')
+    #else:
+    #    ms.sciy()
+    ms.sciy()
     if save:
         plt.savefig(figures_path + prefix + '_hist_' + train.columns[kk])
 
@@ -101,8 +102,8 @@ for kk in np.arange(4):
     plt.suptitle('Residuals of %s' % train.columns[kk])
     plt.xlabel(residual_strings[kk])  # (train.columns[kk], train.columns[kk], train.columns[kk]))
     plt.ylabel('Number of jets')
-    #ms.sciy()
-    plt.yscale('log')
+    ms.sciy()
+    #plt.yscale('log')
     rms = utils.rms(residuals[:, kk])
     ax = plt.gca()
     plt.text(.2, .5, 'RMS = %f' % rms, bbox={'facecolor': 'white', 'alpha': 0.7, 'pad': 10},
