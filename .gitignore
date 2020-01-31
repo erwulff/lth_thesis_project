@@ -1,5 +1,6 @@
 __pycache__/
 first_tutorials/.ipynb_checkpoints/
-*png
+*.png
 .ipynb_checkpoints/
+*.pdf
 .DS_Store

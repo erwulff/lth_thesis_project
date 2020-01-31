@@ -1,0 +1,2 @@
+001_train_25aodbs4096_lr1e-03_wd1e-01_pp0e+00_.py:134: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.savefig(curr_save_folder + fig_name)
