@@ -42,7 +42,7 @@ def time_encode_decode(model, dataframe, verbose=False):
         Tuple containing (encode_time_per_jet, decode_time_per_jet).
 
     """
-    data = torch.tensor(dataframe.values)
+    data = torch.tensor(dataframe.values, dtype=torch.float)
     start_encode = time.time()
     latent = model.encode(data)
     end_encode = time.time()
