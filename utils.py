@@ -42,7 +42,7 @@ def time_encode_decode(model, dataframe, verbose=False):
         Tuple containing (encode_time_per_jet, decode_time_per_jet).
 
     """
-    data = torch.tensor(dataframe.values)
+    data = torch.tensor(dataframe.values, dtype=torch.float)
     start_encode = time.time()
     latent = model.encode(data)
     end_encode = time.time()
@@ -385,23 +385,24 @@ def filter_jets(train):
         train.pop('BchCorrCell')
 
     # Remove all jets with EMFrac outside (-2, 2)
-    train = train[(np.abs(train['EMFrac']) < 2)]
+    train = train[(np.abs(train['EMFrac']) < 5)]
     train = train[np.invert((np.abs(train['EMFrac']) < 0.05) & (np.abs(train['eta']) >= 2))]
     train = train[np.invert((train['AverageLArQF'] > .8) & (train['EMFrac'] > .95) & (train['LArQuality'] > .8) & (np.abs(train['eta']) < 2.8))]
-    train = train[np.abs(train['NegativeE']) < 60]
+    train = train[np.abs(train['NegativeE']) < 60 * 5]
 
     # Filter out extreme jets
     train = train[np.invert((train['AverageLArQF'] > .8) & (np.abs(train['HECQuality']) > 0.5) & (np.abs(train['HECFrac']) > 0.5))]
     train = train[train['OotFracClusters10'] > -0.1]
     train = train[train['OotFracClusters5'] > -0.1]
     if 'Width' in train.keys():
-        train = train[train['Width'] < 100]
+        train = train[np.abs(train['Width']) < 5]
+        train = train[np.invert(train['Width'] == -1)]
     if 'WidthPhi' in train.keys():
-        train = train[train['WidthPhi'] < 100]
-    train = train[np.abs(train['Timing']) < 120]
-    train = train[train['LArQuality'] < 2]
-    train = train[train['HECQuality'] > -100000]
-    train = train[train['m'] > 1e-3]
+        train = train[np.abs(train['WidthPhi']) < 5]
+    train = train[np.abs(train['Timing']) < 125]
+    train = train[train['LArQuality'] < 4]
+    train = train[np.abs(train['HECQuality']) < 2.5]
+    # train = train[train['m'] > 1e-3]
 
     return train
 

@@ -1,3 +1,6 @@
+import sys
+BIN = '../../'
+sys.path.append(BIN)
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -9,7 +12,7 @@ from my_nn_modules import AE_big
 
 import my_matplotlib_style as ms
 
-mpl.rc_file('../my_matplotlib_rcparams')
+mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
 # Load model
 model = AE_big()
@@ -18,8 +21,8 @@ model.load_state_dict(torch.load(save_path))
 model.eval()
 
 # Load data
-train = pd.read_pickle('processed_data/train.pkl')
-test = pd.read_pickle('processed_data/test.pkl')
+train = pd.read_pickle(BIN + 'processed_data/train.pkl')
+test = pd.read_pickle(BIN + 'processed_data/test.pkl')
 
 # Normalize
 train_mean = train.mean()

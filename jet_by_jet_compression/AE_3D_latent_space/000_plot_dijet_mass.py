@@ -4,7 +4,7 @@ import numpy as np
 ROOT.gROOT.SetBatch(1)  # makes it faster- doesn't send lots of canvases over x11 connection
 
 
-path_to_data = '../../data/'
+path_to_data = '../../../data/'
 
 folder15 = 'breynold/user.breynold.data15_13TeV.00284484.physics_Main.DAOD_NTUP_JTRIG_JETM1.r9264_p3083_p3601_j042_tree.root/'
 file15 = 'user.breynold.18753218._000001.tree.root'

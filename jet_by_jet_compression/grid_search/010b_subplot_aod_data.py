@@ -46,6 +46,8 @@ data_df = pd.DataFrame(data, columns=test.columns)
 
 # Unnormalize
 unnormalized_data_df = utils.custom_unnormalize(data_df)
+# Uncomment this to plot normalized data
+# unnormalized_data_df = data_df
 
 hist_groups = [
     ['pt', 'eta', 'phi', 'm', 'LeadingClusterPt', 'LeadingClusterCenterLambda', 'LeadingClusterSecondLambda', 'LeadingClusterSecondR', 'Width'],
@@ -59,7 +61,7 @@ mpl.rcParams['axes.labelsize'] = 18
 
 group = hist_groups[0]
 
-save = True
+save = False
 
 for i_group, group in enumerate(hist_groups):
     group_data_df = unnormalized_data_df[group]
