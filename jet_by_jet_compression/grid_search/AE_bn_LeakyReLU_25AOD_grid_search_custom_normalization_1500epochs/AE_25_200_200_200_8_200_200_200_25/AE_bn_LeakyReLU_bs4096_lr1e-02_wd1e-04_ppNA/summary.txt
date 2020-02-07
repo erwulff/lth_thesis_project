@@ -1,0 +1,1 @@
+AE_bn_LeakyReLU Minimum validation loss: 4.533316e-04 epoch: 1489 lr: 1.0e-02 wd: 1.0e-04 p: None Training time: 2 days, 0:04:02.249495
