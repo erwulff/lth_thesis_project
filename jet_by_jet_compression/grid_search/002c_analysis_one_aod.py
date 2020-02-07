@@ -64,7 +64,7 @@ grid_search_folder = module_name + '_AOD_grid_search_custom_normalization_1500ep
 model_folder = 'AE_%d_200_200_200_%d_200_200_200_%d' % (input_dim, latent_dim, input_dim)
 train_folder = 'AE_bn_LeakyReLU_bs4096_lr1e-02_wd1e-02_ppNA'
 # train_folder = 'AE_bn_LeakyReLU_bs4096_lr3e-02_wd1e-04_ppNA'
-save = True
+save = False
 
 loss_func = nn.MSELoss()
 
