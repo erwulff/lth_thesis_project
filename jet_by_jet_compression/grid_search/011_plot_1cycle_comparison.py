@@ -12,8 +12,8 @@ import my_matplotlib_style as ms
 
 mpl.rc_file(BIN + 'my_matplotlib_rcparams')
 
-save = False
-curr_save_folder = '1cycle_comparison_plots'
+save = True
+curr_save_folder = '1cycle_comparison_plots/'
 
 # 1cycle high lr
 path_to_save_dict = 'AE_basic_1000epochs_grid_search/AE_4_200_100_50_3_50_100_200_4/AE_basic_bs2048_lr1e-03_pNA_wd0e+00/save_dictbs2048_lr1e-03_wd0e+00_ppNA_.pkl'

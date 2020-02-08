@@ -4,6 +4,8 @@ This repository contains the code I wrote while working on my master's thesis pr
 
 The project can be divided in two parts. One where the jet 4-momentum is compressed to three variables using a 3D latent space AE and one where 27 different jet variables are compressed into a varying number of latent space dimension.
 
+Due to size contraints the actual data files I used are not included in this GitHub repository.
+
 ## Data preprocessing
 
 
@@ -13,6 +15,8 @@ The data was extracted from a ROOT file with `process_ROOT_data.ipynb`.
 
 #### The 27 variable input
 The data was extracted from a derived AOD with TLA data using `process_AOD_data_all_jets.ipynb`. The data was normalized in `aod_custom_normalization.ipynb` located in `jet_by_jet_compression/aod_compression/`.
+
+The functions `custom_normalization` and `custom_unnormalize` in `utils.py` can be used to normalize and unnormalize the data according to my custom scheme.
 
 ## Models and utils
 The neural network architectures used throughout this project are defined as python classes in `my_nn_modules.py`. They all inherit from PyTorch's `nn.Module` class.
@@ -85,6 +89,8 @@ The script `012_time_all.py` encodes and decodes a dataset 100 times with differ
 
 #### Independent evaluation with a signal Monte-Carlo sample
 A signal MC sample of a Dark Matter (DM) mediator decaying into jets was used for independent evaluation of the AEs. For this, the `process_MC_data.ipynb` notebook was used to preprocess the data.
+
+In `jet_by_jet_compression/grid_search/AE_bn_LeakyReLU_25AOD_grid_search_custom_normalization_1500epochs/` the script `000_plot_mjj.py` prduces plots showing the dijet mass distribution before and after being fed through the AEs.
 
 
 
