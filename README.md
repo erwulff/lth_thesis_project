@@ -92,8 +92,3 @@ A signal MC sample of a Dark Matter (DM) mediator decaying into jets was used fo
 
 In `jet_by_jet_compression/grid_search/AE_bn_LeakyReLU_25AOD_grid_search_custom_normalization_1500epochs/` the script `000_plot_mjj.py` prduces plots showing the dijet mass distribution before and after being fed through the AEs.
 
-
-
-CERN Binder: [![Binder](https://binder.cern.ch/badge_logo.svg)](https://binder.cern.ch/v2/gh/erwulff/lth_thesis_project/master)
-
-mybinder.org: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/erwulff/lth_thesis_project/master)
